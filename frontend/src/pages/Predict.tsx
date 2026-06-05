@@ -14,6 +14,7 @@ import {
 import { getPlayers, type Player } from '../api/players'
 import { Badge, Button } from '../components/ui'
 import { Icon } from '../components/Icon'
+import { SearchSelect, type Option } from '../components/SearchSelect'
 import {
   groupLabel,
   kickoffPassed,
@@ -308,36 +309,30 @@ function SummaryPanel({ summary }: { summary: MatchSummary }) {
 }
 
 // ------------------------------------------------------------- Scorer picker
-function scorerSelectStyle(disabled: boolean): React.CSSProperties {
-  return {
-    width: '100%',
-    padding: '9px 12px',
-    background: 'var(--lmn-pitch-500, #182038)',
-    border: '1px solid var(--lmn-ash-800, #283044)',
-    borderRadius: 'var(--lmn-radius-md, 8px)',
-    color: 'var(--lmn-ash-100)',
-    fontFamily: 'var(--lmn-font-ui)',
-    fontSize: 14,
-    opacity: disabled ? 0.5 : 1,
-  }
-}
-
 function ScorerSlots({
   teamLabel,
   players,
+  crest,
   values,
   onChange,
   disabled,
 }: {
   teamLabel: string
   players: Player[]
+  crest?: string | null
   values: (number | '')[]
   onChange: (idx: number, v: number | '') => void
   disabled: boolean
 }) {
   if (values.length === 0) return null
-  const opt = (p: Player) =>
-    `${p.shirt_number ?? '–'} · ${p.name}${p.position ? ` · ${p.position}` : ''}`
+  // Stesso dropdown cercabile dei pronostici di torneo: ricerca, scroll fluido,
+  // icona squadra. I duplicati sono ammessi (doppietta) -> nessun exclude.
+  const options: Option[] = players.map((p) => ({
+    value: String(p.id),
+    label: `${p.name}${p.position ? ` · ${p.position}` : ''}`,
+    hint: p.shirt_number != null ? `#${p.shirt_number}` : undefined,
+    icon: crest ?? null,
+  }))
   return (
     <div style={{ marginTop: 12 }}>
       <div
@@ -354,20 +349,14 @@ function ScorerSlots({
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {values.map((v, idx) => (
-          <select
+          <SearchSelect
             key={idx}
-            value={v}
+            options={options}
+            value={v === '' ? null : String(v)}
+            onChange={(val) => onChange(idx, Number(val))}
+            placeholder={`Marcatore #${idx + 1}`}
             disabled={disabled}
-            onChange={(e) => onChange(idx, e.target.value ? Number(e.target.value) : '')}
-            style={scorerSelectStyle(disabled)}
-          >
-            <option value="">— Scegli marcatore #{idx + 1} —</option>
-            {players.map((p) => (
-              <option key={p.id} value={p.id}>
-                {opt(p)}
-              </option>
-            ))}
-          </select>
+          />
         ))}
       </div>
     </div>
@@ -609,6 +598,7 @@ export default function Predict() {
             <ScorerSlots
               teamLabel={match.home_team_name ?? 'Casa'}
               players={homePlayers}
+              crest={match.home_team_crest}
               values={scorerHome}
               onChange={(idx, v) =>
                 setScorerHome((prev) => prev.map((x, i) => (i === idx ? v : x)))
@@ -618,6 +608,7 @@ export default function Predict() {
             <ScorerSlots
               teamLabel={match.away_team_name ?? 'Ospite'}
               players={awayPlayers}
+              crest={match.away_team_crest}
               values={scorerAway}
               onChange={(idx, v) =>
                 setScorerAway((prev) => prev.map((x, i) => (i === idx ? v : x)))

@@ -17,22 +17,22 @@ def list_teams(_user: dict = Depends(get_current_user)):
     con `players` (>1000 righe) alcune nazionali venivano troncate."""
     rows = (
         supabase_admin.table("matches")
-        .select("home_team_tla, home_team_name, away_team_tla, away_team_name")
+        .select(
+            "home_team_tla, home_team_name, home_team_crest, "
+            "away_team_tla, away_team_name, away_team_crest"
+        )
         .execute()
         .data
     )
-    seen: dict[str, str] = {}
+    seen: dict[str, dict] = {}
     for r in rows:
-        for tla, name in (
-            (r.get("home_team_tla"), r.get("home_team_name")),
-            (r.get("away_team_tla"), r.get("away_team_name")),
+        for tla, name, crest in (
+            (r.get("home_team_tla"), r.get("home_team_name"), r.get("home_team_crest")),
+            (r.get("away_team_tla"), r.get("away_team_name"), r.get("away_team_crest")),
         ):
             if tla and tla not in seen:
-                seen[tla] = name or tla
-    return sorted(
-        ({"team_tla": tla, "team_name": name} for tla, name in seen.items()),
-        key=lambda t: t["team_name"],
-    )
+                seen[tla] = {"team_tla": tla, "team_name": name or tla, "team_crest": crest}
+    return sorted(seen.values(), key=lambda t: t["team_name"])
 
 
 @router.get("")

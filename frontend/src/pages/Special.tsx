@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   answerSpecial,
   getSpecialQuestions,
@@ -10,156 +10,7 @@ import {
 import { getAllPlayers, type Player } from '../api/players'
 import { Badge, Button } from '../components/ui'
 import { Icon } from '../components/Icon'
-
-// --------------------------------------------------------------- SearchSelect
-interface Option {
-  value: string
-  label: string
-  hint?: string
-}
-
-function SearchSelect({
-  options,
-  value,
-  onChange,
-  placeholder,
-  disabled,
-  exclude,
-}: {
-  options: Option[]
-  value: string | null
-  onChange: (v: string) => void
-  placeholder: string
-  disabled?: boolean
-  exclude?: Set<string>
-}) {
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  const ref = useRef<HTMLDivElement>(null)
-
-  const selected = options.find((o) => o.value === value)
-
-  useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
-  }, [])
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return options
-      .filter((o) => !exclude || !exclude.has(o.value) || o.value === value)
-      .filter((o) => !q || o.label.toLowerCase().includes(q) || o.value.toLowerCase().includes(q))
-      .slice(0, 80)
-  }, [options, query, exclude, value])
-
-  if (disabled) {
-    return (
-      <div
-        className="lmn-card"
-        style={{ padding: '10px 14px', fontSize: 14, color: 'var(--lmn-ash-200)' }}
-      >
-        {selected ? selected.label : <span style={{ color: 'var(--lmn-ash-500)' }}>—</span>}
-      </div>
-    )
-  }
-
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="lmn-card lmn-card--hoverable"
-        style={{
-          width: '100%',
-          textAlign: 'left',
-          padding: '10px 14px',
-          fontSize: 14,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 8,
-          color: selected ? 'var(--lmn-ash-100)' : 'var(--lmn-ash-500)',
-          cursor: 'pointer',
-        }}
-      >
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {selected ? selected.label : placeholder}
-        </span>
-        <span style={{ color: 'var(--lmn-ash-500)', flexShrink: 0 }}>▾</span>
-      </button>
-      {open && (
-        <div
-          className="lmn-card"
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            left: 0,
-            right: 0,
-            zIndex: 20,
-            padding: 8,
-            maxHeight: 280,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 6,
-            boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
-          }}
-        >
-          <input
-            autoFocus
-            className="lmn-input"
-            placeholder="Cerca…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            style={{ padding: '8px 10px' }}
-          />
-          <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-            {filtered.length === 0 && (
-              <div style={{ padding: 10, fontSize: 13, color: 'var(--lmn-ash-500)' }}>
-                Nessun risultato.
-              </div>
-            )}
-            {filtered.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => {
-                  onChange(o.value)
-                  setOpen(false)
-                  setQuery('')
-                }}
-                style={{
-                  textAlign: 'left',
-                  background: o.value === value ? 'var(--lmn-pitch-600, #1a2236)' : 'none',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '8px 10px',
-                  cursor: 'pointer',
-                  color: 'var(--lmn-ash-100)',
-                  fontSize: 14,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: 8,
-                }}
-              >
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {o.label}
-                </span>
-                {o.hint && (
-                  <span style={{ color: 'var(--lmn-ash-500)', fontSize: 12, flexShrink: 0 }}>
-                    {o.hint}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+import { SearchSelect, type Option } from '../components/SearchSelect'
 
 // --------------------------------------------------------------- helpers
 function teamLabel(teams: Team[], tla: string | undefined | null): string {
@@ -191,16 +42,26 @@ function QuestionCard({
   const [err, setErr] = useState<string | null>(null)
 
   const locked = !q.open
-  const teamOptions: Option[] = teams.map((t) => ({
-    value: t.team_tla,
-    label: t.team_name,
-    hint: t.team_tla,
-  }))
-  const playerOptions: Option[] = players.map((p) => ({
-    value: String(p.id),
-    label: p.name,
-    hint: p.team_tla ?? undefined,
-  }))
+  const crestByTla = useMemo(() => {
+    const m: Record<string, string | null> = {}
+    for (const t of teams) m[t.team_tla] = t.team_crest
+    return m
+  }, [teams])
+  const teamOptions: Option[] = useMemo(
+    () => teams.map((t) => ({ value: t.team_tla, label: t.team_name, hint: t.team_tla, icon: t.team_crest })),
+    [teams],
+  )
+  const playerOptions: Option[] = useMemo(
+    () =>
+      players.map((p) => ({
+        value: String(p.id),
+        // label include il nome nazionale così la ricerca trova anche per squadra.
+        label: `${p.name}${p.team_name ? ` · ${p.team_name}` : ''}`,
+        hint: p.team_tla ?? undefined,
+        icon: p.team_tla ? crestByTla[p.team_tla] : null,
+      })),
+    [players, crestByTla],
+  )
 
   const canSave = (() => {
     if (q.qtype === 'team') return !!draft.team_tla

@@ -29,6 +29,7 @@ export interface SpecialQuestion {
 export interface Team {
   team_tla: string
   team_name: string
+  team_crest: string | null
 }
 
 export const getSpecialQuestions = () => apiFetch<SpecialQuestion[]>('/special/questions')

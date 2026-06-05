@@ -1,14 +1,4 @@
 {
   "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/dist",
-  "functions": {
-    "api/index.py": { "runtime": "@vercel/python@4.3.0" }
-  },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.py" }
-  ],
-  "crons": [
-    { "path": "/api/sync/cron", "schedule": "*/15 * * * *" },
-    { "path": "/api/leaderboard/snapshot/cron", "schedule": "0 0 * * *" }
-  ]
+  "outputDirectory": "frontend/dist"
 }

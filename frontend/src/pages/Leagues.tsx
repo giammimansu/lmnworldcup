@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import {
   getLeagueMembers,
   joinLeague,
@@ -15,6 +15,7 @@ import { InviteCode, Onboarding } from '../leagues/Onboarding'
 import { useAuth } from '../auth/AuthContext'
 import { Avatar, Button, TextInput } from '../components/ui'
 import { Icon } from '../components/Icon'
+import BackButton from '../components/BackButton'
 
 const H2: React.CSSProperties = {
   fontFamily: 'var(--lmn-font-display)',
@@ -150,7 +151,6 @@ function Management({ league, onChange }: { league: League; onChange: () => void
 export default function Leagues() {
   const { leagues, current, loading, setCurrent, refresh } = useLeagues()
   const [params, setParams] = useSearchParams()
-  const navigate = useNavigate()
 
   // Deep link: ?code=WC26-XXXXX → precompila/esegue il join (utente già loggato qui).
   useEffect(() => {
@@ -171,21 +171,7 @@ export default function Leagues() {
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px 96px' }}>
-      <button
-        onClick={() => navigate(-1)}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: 'var(--lmn-ash-400)',
-          fontFamily: 'var(--lmn-font-ui)',
-          fontSize: 14,
-          cursor: 'pointer',
-          padding: 0,
-          marginBottom: 16,
-        }}
-      >
-        ← Indietro
-      </button>
+      <BackButton />
 
       <h1 style={{ fontFamily: 'var(--lmn-font-display)', fontSize: 32, letterSpacing: '0.04em', margin: '0 0 20px', color: 'var(--lmn-ash-100)' }}>
         LE MIE LEGHE

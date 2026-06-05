@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import BackButton from '../components/BackButton'
 import { getMatch, type Match } from '../api/matches'
 import {
   createPrediction,
@@ -376,7 +377,6 @@ function ScorerSlots({
 // ------------------------------------------------------------- Page
 export default function Predict() {
   const { matchId } = useParams()
-  const navigate = useNavigate()
   const id = Number(matchId)
 
   const [match, setMatch] = useState<Match | null>(null)
@@ -496,24 +496,7 @@ export default function Predict() {
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px 80px' }}>
-      <button
-        onClick={() => navigate(-1)}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: 'var(--lmn-ash-400)',
-          fontFamily: 'var(--lmn-font-ui)',
-          fontSize: 14,
-          marginBottom: 20,
-          padding: 0,
-        }}
-      >
-        ← Indietro
-      </button>
+      <BackButton />
 
       <div className="lmn-card" style={{ padding: 28, textAlign: 'center' }}>
         <div

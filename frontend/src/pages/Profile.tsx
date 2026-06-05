@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import BackButton from '../components/BackButton'
 import { getMyScorerPredictions, type ScorerPrediction } from '../api/predictions'
 import {
   getMyAchievements,
@@ -199,14 +200,7 @@ export default function Profile() {
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px 96px' }}>
-      {!isMe && (
-        <Link
-          to="/"
-          style={{ display: 'inline-block', color: 'var(--lmn-ash-400)', textDecoration: 'none', fontSize: 14, marginBottom: 16 }}
-        >
-          ← Classifica
-        </Link>
-      )}
+      {!isMe && <BackButton to="/" label="Classifica" />}
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 28 }}>

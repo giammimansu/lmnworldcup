@@ -16,7 +16,14 @@
       "Bash(npm run *)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/)",
       "Bash(curl -s -o /dev/null -w \"no-token: %{http_code}\\\\n\" http://localhost:8000/leaderboard)",
-      "Bash(echo \"EXIT $?\")"
+      "Bash(echo \"EXIT $?\")",
+      "Bash(./.venv/Scripts/python.exe -c \"import apscheduler; print\\('apscheduler', apscheduler.version\\)\")",
+      "Bash(./.venv/Scripts/python.exe -c \"from app.main import app, scheduler; print\\('OK routers:', len\\(app.routes\\)\\); print\\('jobs defined in lifespan \\(not started yet\\)'\\)\")",
+      "Bash(./.venv/Scripts/python.exe -m pip install \"apscheduler>=3.10\")",
+      "Bash(uv pip *)",
+      "Bash(./.venv/Scripts/python.exe -c \"from app.main import app, scheduler; print\\('OK routes:', len\\(app.routes\\)\\); print\\('lifespan set:', app.router.lifespan_context is not None\\)\")",
+      "Bash(./.venv/Scripts/python.exe -c ' *)",
+      "Bash(./.venv/Scripts/python.exe -m pytest -q)"
     ]
   }
 }

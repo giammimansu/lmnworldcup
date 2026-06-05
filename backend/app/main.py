@@ -1,7 +1,12 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.config import settings
+from app.services.sync import sync_matches
+from app.services.leaderboard import save_snapshot
 from app.routers import (
     admin,
     auth,
@@ -18,7 +23,25 @@ from app.routers import (
     users,
 )
 
-app = FastAPI(title="LMN World Cup API", version="0.1.0")
+# timezone=UTC: lo snapshot deve girare alle 00:05 UTC ovunque, indipendentemente
+# dal fuso dell'host (in locale sarebbe Europe/Rome).
+scheduler = AsyncIOScheduler(timezone="UTC")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Sync risultati: ogni 30 minuti (48 richieste/giorno, sotto la quota free di
+    # football-data da 100/giorno). sync_matches è una coroutine + idempotente (upsert).
+    scheduler.add_job(sync_matches, "interval", minutes=30, id="sync", replace_existing=True)
+    # Snapshot classifica: ogni giorno alle 00:05 UTC (serve al trend). save_snapshot
+    # è sincrona: AsyncIOScheduler la esegue comunque in un thread executor.
+    scheduler.add_job(save_snapshot, "cron", hour=0, minute=5, id="snapshot", replace_existing=True)
+    scheduler.start()
+    yield
+    scheduler.shutdown()
+
+
+app = FastAPI(title="LMN World Cup API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

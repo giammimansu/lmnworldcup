@@ -73,7 +73,7 @@
   border-radius: var(--lmn-radius-md);
   color: var(--lmn-ash-100);
   font-family: var(--lmn-font-ui);
-  font-size: 15px;
+  font-size: 16px;
   padding: 20px 14px 8px;
   transition: border-color var(--lmn-dur-fast) var(--lmn-ease-standard), box-shadow var(--lmn-dur-fast) var(--lmn-ease-standard);
   outline: none;

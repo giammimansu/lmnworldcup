@@ -1,6 +1,15 @@
 import { supabase } from '../lib/supabase'
 
-const BASE = import.meta.env.VITE_API_URL
+// Normalizza VITE_API_URL: aggiunge https:// se manca lo schema (altrimenti il
+// browser tratta il valore come path relativo e lo appende all'origin del sito)
+// e rimuove lo slash finale per evitare doppi slash con `path`.
+function normalizeBase(raw: string | undefined): string {
+  if (!raw) return ''
+  const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+  return withScheme.replace(/\/+$/, '')
+}
+
+const BASE = normalizeBase(import.meta.env.VITE_API_URL)
 
 const TIMEOUT_MS = 15000
 const MAX_RETRIES = 2

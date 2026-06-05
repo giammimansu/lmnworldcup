@@ -1,0 +1,24 @@
+<svg width="420" height="120" viewBox="0 0 420 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LMN WORLD CUP">
+  <defs>
+    <linearGradient id="lmnGoldF" x1="0" y1="0" x2="0" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F0CD74"></stop>
+      <stop offset="0.55" stop-color="#E0A82E"></stop>
+      <stop offset="1" stop-color="#C28E1F"></stop>
+    </linearGradient>
+  </defs>
+  
+  <g transform="translate(0,0)">
+    <polygon points="60,8 105,32 105,82 60,112 15,82 15,32" fill="#10172A" stroke="url(#lmnGoldF)" stroke-width="3.5" stroke-linejoin="round"></polygon>
+    <polygon points="60,16 98,36 98,78 60,103 22,78 22,36" fill="none" stroke="#38415A" stroke-width="1.2" stroke-linejoin="round"></polygon>
+    <g stroke="url(#lmnGoldF)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" fill="none" opacity="0.9">
+      <polygon points="60,30 71,38 67,51 53,51 49,38" fill="url(#lmnGoldF)" opacity="0.16"></polygon>
+      <polygon points="60,30 71,38 67,51 53,51 49,38"></polygon>
+      <path d="M60 30 L60 19"></path><path d="M71 38 L82 33"></path><path d="M49 38 L38 33"></path>
+      <path d="M67 51 L74 61"></path><path d="M53 51 L46 61"></path>
+    </g>
+    <text x="60" y="86" text-anchor="middle" font-family="&#39;Bebas Neue&#39;, &#39;Arial Narrow&#39;, sans-serif" font-size="30" letter-spacing="2" fill="url(#lmnGoldF)">LMN</text>
+  </g>
+  
+  <text x="128" y="58" font-family="&#39;Bebas Neue&#39;, &#39;Arial Narrow&#39;, sans-serif" font-size="58" letter-spacing="1" fill="#E8ECF4">LMN</text>
+  <text x="130" y="90" font-family="&#39;DM Sans&#39;, sans-serif" font-weight="500" font-size="20" letter-spacing="8" fill="#A7B2C6">WORLD CUP</text>
+</svg>

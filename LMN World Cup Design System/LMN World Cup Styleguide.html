@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LMN World Cup · Design System</title>
+  <link rel="stylesheet" href="colors_and_type.css" />
+  <link rel="stylesheet" href="lib/components.css" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body { background: var(--lmn-midnight-500); color: var(--lmn-ash-100); font-family: var(--lmn-font-ui); -webkit-font-smoothing: antialiased; }
+    #root { height: 100%; }
+
+    .lmn-shell { display: flex; height: 100vh; }
+
+    .lmn-sidebar {
+      width: 260px; flex: none; background: var(--lmn-midnight-700);
+      border-right: 1px solid var(--lmn-ash-800);
+      padding: 24px 16px; display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .lmn-nav { display: flex; flex-direction: column; gap: 2px; margin-top: 8px; }
+    .lmn-nav-group { font-family: var(--lmn-font-ui); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--lmn-ash-600); padding: 18px 12px 6px; }
+    .lmn-navlink {
+      font-family: var(--lmn-font-ui); font-size: 14px; font-weight: 500; color: var(--lmn-ash-300);
+      text-decoration: none; padding: 9px 12px; border-radius: var(--lmn-radius-md);
+      border-left: 2px solid transparent; transition: all var(--lmn-dur-fast) var(--lmn-ease-standard);
+    }
+    .lmn-navlink:hover { background: var(--lmn-pitch-500); color: var(--lmn-ash-100); }
+    .lmn-navlink.is-active { background: var(--lmn-pitch-400); color: var(--lmn-gold-400); border-left-color: var(--lmn-gold-500); font-weight: 600; }
+    .lmn-sidebar-foot { margin-top: auto; padding: 18px 12px 0; font-family: var(--lmn-font-mono); font-size: 10.5px; color: var(--lmn-ash-600); }
+
+    .lmn-main { flex: 1; overflow-y: auto; }
+    .lmn-content { max-width: 1040px; margin: 0 auto; padding: 48px 56px 96px; }
+
+    /* scrollbar */
+    .lmn-main::-webkit-scrollbar, .lmn-sidebar::-webkit-scrollbar { width: 10px; }
+    .lmn-main::-webkit-scrollbar-thumb, .lmn-sidebar::-webkit-scrollbar-thumb { background: var(--lmn-ash-800); border-radius: 8px; border: 2px solid var(--lmn-midnight-500); }
+
+    @media (max-width: 860px) {
+      .lmn-shell { flex-direction: column; height: auto; min-height: 100vh; }
+      .lmn-sidebar {
+        width: 100%; flex-direction: row; align-items: center; gap: 8px;
+        overflow-x: auto; overflow-y: hidden; padding: 12px 14px;
+        position: sticky; top: 0; z-index: 10; border-right: none; border-bottom: 1px solid var(--lmn-ash-800);
+      }
+      .lmn-sidebar > a { flex: none; }
+      .lmn-sidebar > div:not(.lmn-nav-group) { display: none; }
+      .lmn-nav { flex-direction: row; margin-top: 0; gap: 4px; flex-wrap: nowrap; }
+      .lmn-nav-group { display: none; }
+      .lmn-navlink { white-space: nowrap; border-left: none; border-bottom: 2px solid transparent; padding: 8px 12px; }
+      .lmn-navlink.is-active { border-left: none; border-bottom-color: var(--lmn-gold-500); }
+      .lmn-sidebar-foot { display: none; }
+      .lmn-content { padding: 28px 20px 80px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="lib/icons.jsx"></script>
+  <script type="text/babel" src="lib/components.jsx"></script>
+  <script type="text/babel" src="styleguide/data.jsx"></script>
+  <script type="text/babel" src="styleguide/sections-foundations.jsx"></script>
+  <script type="text/babel" src="styleguide/sections-components.jsx"></script>
+  <script type="text/babel" src="styleguide/app.jsx"></script>
+</body>
+</html>

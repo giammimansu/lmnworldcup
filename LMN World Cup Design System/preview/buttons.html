@@ -1,0 +1,20 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css"><link rel="stylesheet" href="../lib/components.css"><style>
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--lmn-midnight-500);color:var(--lmn-ash-100);font-family:var(--lmn-font-ui);padding:20px 24px;min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:14px}
+.tok{font-family:var(--lmn-font-mono);font-size:10px;color:var(--lmn-ash-500)}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.lbl{font-family:var(--lmn-font-mono);font-size:10px;color:var(--lmn-ash-500);text-align:center;margin-top:6px}
+</style></head><body>
+<div class="row">
+<button class="lmn-btn lmn-btn--primary lmn-btn--md">Conferma pronostico</button>
+<button class="lmn-btn lmn-btn--secondary lmn-btn--md">Modifica</button>
+<button class="lmn-btn lmn-btn--ghost lmn-btn--md">Salta</button>
+<button class="lmn-btn lmn-btn--danger lmn-btn--md">Elimina</button>
+</div>
+<div class="row">
+<button class="lmn-btn lmn-btn--primary lmn-btn--sm">Small</button>
+<button class="lmn-btn lmn-btn--primary lmn-btn--lg">Large</button>
+<button class="lmn-btn lmn-btn--primary lmn-btn--md" disabled>Disabled</button>
+<button class="lmn-btn lmn-btn--primary lmn-btn--md"><span class="lmn-spinner"></span>Invio…</button>
+</div>
+<div class="tok">primary · secondary · ghost · danger — sm / md / lg + loading</div></body></html>

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(uv *)",
+      "PowerShell(pip install *)",
+      "PowerShell(Start-Sleep -Seconds 4; \\(Invoke-WebRequest -Uri http://localhost:8000/ping -UseBasicParsing\\).Content)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell(Start-Sleep -Seconds 4; \\(Invoke-WebRequest -Uri http://localhost:8000/ping -UseBasicParsing\\).Content; try { Invoke-WebRequest -Uri http://localhost:8000/matches -UseBasicParsing } catch { \"GET /matches -> \" + $_.Exception.Response.StatusCode.value__ }; try { Invoke-WebRequest -Uri http://localhost:8000/sync/cron -UseBasicParsing } catch { \"GET /sync/cron -> \" + $_.Exception.Response.StatusCode.value__ })",
+      "PowerShell($bytes = New-Object byte[] 32; [System.Security.Cryptography.RandomNumberGenerator]::Fill\\($bytes\\); -join \\($bytes | ForEach-Object { $_.ToString\\('x2'\\) }\\))",
+      "PowerShell($rng = [System.Security.Cryptography.RNGCryptoServiceProvider]::new\\(\\); $bytes = New-Object byte[] 32; $rng.GetBytes\\($bytes\\); -join \\($bytes | ForEach-Object { $_.ToString\\('x2'\\) }\\))",
+      "Bash(npx tsc *)",
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(uv run *)",
+      "Bash(ls docs *)",
+      "Bash(ls backend/scripts)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/)",
+      "Bash(curl -s -o /dev/null -w \"no-token: %{http_code}\\\\n\" http://localhost:8000/leaderboard)",
+      "Bash(echo \"EXIT $?\")"
+    ]
+  }
+}

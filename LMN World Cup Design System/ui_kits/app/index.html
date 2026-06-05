@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LMN World Cup · App</title>
+  <link rel="stylesheet" href="../../colors_and_type.css" />
+  <link rel="stylesheet" href="../../lib/components.css" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: radial-gradient(120% 80% at 50% 0%, #141b30 0%, var(--lmn-midnight-700) 55%, var(--lmn-midnight-900) 100%);
+      font-family: var(--lmn-font-ui); color: var(--lmn-ash-100);
+      display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px;
+    }
+    #root { display: flex; }
+
+    .phone {
+      width: 390px; height: 800px; background: var(--lmn-midnight-700);
+      border-radius: 46px; padding: 8px; position: relative;
+      box-shadow: 0 0 0 2px var(--lmn-ash-800), 0 30px 80px rgba(0,0,0,0.6);
+    }
+    .phone-screen {
+      position: relative; width: 100%; height: 100%; background: var(--lmn-midnight-500);
+      border-radius: 38px; overflow: hidden; display: flex; flex-direction: column;
+    }
+    .phone-content { flex: 1; overflow-y: auto; }
+    .phone-content::-webkit-scrollbar { width: 0; }
+    .phone-nav { flex: none; }
+    .phone-home-indicator {
+      position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%);
+      width: 128px; height: 5px; border-radius: 3px; background: var(--lmn-ash-300); opacity: 0.55; z-index: 40;
+    }
+    /* notch */
+    .phone-screen::before {
+      content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 120px; height: 26px; background: var(--lmn-midnight-700);
+      border-radius: 0 0 16px 16px; z-index: 50;
+    }
+    @media (max-height: 860px) { .phone { transform: scale(0.92); } }
+    @media (max-height: 760px) { .phone { transform: scale(0.82); } }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="../../lib/icons.jsx"></script>
+  <script type="text/babel" src="../../lib/components.jsx"></script>
+  <script type="text/babel" src="data.jsx"></script>
+  <script type="text/babel" src="screens.jsx"></script>
+  <script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

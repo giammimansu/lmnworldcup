@@ -1,0 +1,170 @@
+/* ============================================================================
+   LMN WORLD CUP — Design Tokens
+   "Indovina. Scala. Domina."
+   Dark, premium, sporting. Inspired by UEFA Champions League app, Sorare, FotMob.
+   Import this file to inherit the full token system, or copy the :root block.
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ---- MIDNIGHT — primary backgrounds (cool near-black, blue undertone) ---- */
+  --lmn-midnight-100: #2A3654;
+  --lmn-midnight-200: #222D49;
+  --lmn-midnight-300: #1B2440;
+  --lmn-midnight-400: #151D34;
+  --lmn-midnight-500: #10172A; /* app background */
+  --lmn-midnight-600: #0C1222;
+  --lmn-midnight-700: #090E1B;
+  --lmn-midnight-800: #060A14;
+  --lmn-midnight-900: #03060D;
+
+  /* ---- PITCH — surfaces & cards (one step above midnight) ---- */
+  --lmn-pitch-100: #2E3A57;
+  --lmn-pitch-200: #283350;
+  --lmn-pitch-300: #222C46;
+  --lmn-pitch-400: #1D2640;
+  --lmn-pitch-500: #182038; /* default card surface */
+  --lmn-pitch-600: #141B30;
+  --lmn-pitch-700: #111728;
+  --lmn-pitch-800: #0D121F;
+  --lmn-pitch-900: #090D17;
+
+  /* ---- GOLD — primary accent, actions, victory (warm, refined) ---- */
+  --lmn-gold-100: #FBF0D2;
+  --lmn-gold-200: #F6E0A6;
+  --lmn-gold-300: #F0CD74;
+  --lmn-gold-400: #E9BC50;
+  --lmn-gold-500: #E0A82E; /* primary accent */
+  --lmn-gold-600: #C28E1F;
+  --lmn-gold-700: #9A6F18;
+  --lmn-gold-800: #6E4F12;
+  --lmn-gold-900: #43300B;
+
+  /* ---- ELECTRIC — secondary accent, live & alerts (cold blue) ---- */
+  --lmn-electric-100: #D6E6FF;
+  --lmn-electric-200: #A8CBFF;
+  --lmn-electric-300: #6FA8FF;
+  --lmn-electric-400: #3D86FB;
+  --lmn-electric-500: #1E6BF0; /* secondary accent */
+  --lmn-electric-600: #1553C4;
+  --lmn-electric-700: #103F95;
+  --lmn-electric-800: #0B2C68;
+  --lmn-electric-900: #071B3F;
+
+  /* ---- EMBER — warning, matches in progress (amber-orange) ---- */
+  --lmn-ember-100: #FDE4CE;
+  --lmn-ember-200: #FAC79C;
+  --lmn-ember-300: #F6A465;
+  --lmn-ember-400: #F2853A;
+  --lmn-ember-500: #E96D1C; /* warning */
+  --lmn-ember-600: #C5550F;
+  --lmn-ember-700: #97400B;
+  --lmn-ember-800: #6A2D08;
+  --lmn-ember-900: #3F1B05;
+
+  /* ---- ASH — secondary text, borders (cool gray, blue undertone) ---- */
+  --lmn-ash-100: #E8ECF4;
+  --lmn-ash-200: #CBD3E1;
+  --lmn-ash-300: #A7B2C6;
+  --lmn-ash-400: #8390A8;
+  --lmn-ash-500: #657089; /* secondary text */
+  --lmn-ash-600: #4C5670;
+  --lmn-ash-700: #38415A;
+  --lmn-ash-800: #283044;
+  --lmn-ash-900: #1B2233;
+
+  /* ---- SUCCESS — pronostico esatto (green) ---- */
+  --lmn-success-300: #6FE3A6;
+  --lmn-success-400: #3CCB7F;
+  --lmn-success-500: #22A85F;
+  --lmn-success-600: #18854A;
+  --lmn-success-700: #0F5E34;
+
+  /* ---- DANGER — pronostico sbagliato, LIVE dot (red) ---- */
+  --lmn-danger-300: #FF8A8D;
+  --lmn-danger-400: #FF5C61;
+  --lmn-danger-500: #E5484D;
+  --lmn-danger-600: #C13438;
+  --lmn-danger-700: #8F2528;
+
+  /* ---- SEMANTIC ALIASES ---- */
+  --lmn-bg: var(--lmn-midnight-500);
+  --lmn-bg-deep: var(--lmn-midnight-700);
+  --lmn-surface: var(--lmn-pitch-500);
+  --lmn-surface-raised: var(--lmn-pitch-400);
+  --lmn-surface-sunken: var(--lmn-pitch-700);
+  --lmn-border: var(--lmn-ash-800);
+  --lmn-border-strong: var(--lmn-ash-700);
+  --lmn-fg: var(--lmn-ash-100);
+  --lmn-fg-muted: var(--lmn-ash-300);
+  --lmn-fg-subtle: var(--lmn-ash-500);
+  --lmn-accent: var(--lmn-gold-500);
+  --lmn-accent-hover: var(--lmn-gold-400);
+  --lmn-on-accent: var(--lmn-midnight-700);
+
+  /* ---- TYPE FAMILIES ---- */
+  --lmn-font-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
+  --lmn-font-ui: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --lmn-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* ---- TYPE SCALE (size / line-height / letter-spacing / weight) ---- */
+  --lmn-display-2xl: 72px;  --lmn-display-2xl-lh: 0.92; --lmn-display-2xl-ls: 0.02em;
+  --lmn-display-xl: 48px;   --lmn-display-xl-lh: 0.95;  --lmn-display-xl-ls: 0.02em;
+  --lmn-display-lg: 36px;   --lmn-display-lg-lh: 1.0;   --lmn-display-lg-ls: 0.03em;
+  --lmn-h1: 28px;           --lmn-h1-lh: 1.15;          --lmn-h1-ls: -0.01em;
+  --lmn-h2: 22px;           --lmn-h2-lh: 1.2;           --lmn-h2-ls: -0.005em;
+  --lmn-h3: 18px;           --lmn-h3-lh: 1.3;           --lmn-h3-ls: 0;
+  --lmn-body-lg: 16px;      --lmn-body-lg-lh: 1.5;      --lmn-body-lg-ls: 0;
+  --lmn-body: 14px;         --lmn-body-lh: 1.5;         --lmn-body-ls: 0;
+  --lmn-body-sm: 12px;      --lmn-body-sm-lh: 1.45;     --lmn-body-sm-ls: 0.01em;
+  --lmn-caption: 11px;      --lmn-caption-lh: 1.4;      --lmn-caption-ls: 0.04em;
+
+  /* ---- SPACING (4px base) ---- */
+  --lmn-space-1: 4px;
+  --lmn-space-2: 8px;
+  --lmn-space-3: 12px;
+  --lmn-space-4: 16px;
+  --lmn-space-5: 20px;
+  --lmn-space-6: 24px;
+  --lmn-space-8: 32px;
+  --lmn-space-10: 40px;
+  --lmn-space-12: 48px;
+  --lmn-space-16: 64px;
+
+  /* ---- RADIUS ---- */
+  --lmn-radius-sm: 4px;
+  --lmn-radius-md: 8px;
+  --lmn-radius-lg: 16px;
+  --lmn-radius-xl: 24px;
+  --lmn-radius-full: 9999px;
+
+  /* ---- ELEVATION / SHADOW ---- */
+  --lmn-shadow-sm: 0 1px 2px rgba(3, 6, 13, 0.4);
+  --lmn-shadow-md: 0 4px 16px rgba(3, 6, 13, 0.45);
+  --lmn-shadow-lg: 0 12px 32px rgba(3, 6, 13, 0.55);
+  --lmn-glow-gold: 0 0 0 1px var(--lmn-gold-500), 0 6px 24px rgba(224, 168, 46, 0.22);
+  --lmn-glow-electric: 0 0 0 1px var(--lmn-electric-500), 0 6px 24px rgba(30, 107, 240, 0.25);
+
+  /* ---- MOTION ---- */
+  --lmn-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --lmn-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --lmn-dur-fast: 150ms;
+  --lmn-dur-base: 250ms;
+  --lmn-dur-slow: 400ms;
+}
+
+/* ============================================================================
+   SEMANTIC TEXT CLASSES — apply directly or use as reference
+   ============================================================================ */
+.lmn-display-2xl { font-family: var(--lmn-font-display); font-size: var(--lmn-display-2xl); line-height: var(--lmn-display-2xl-lh); letter-spacing: var(--lmn-display-2xl-ls); font-weight: 400; }
+.lmn-display-xl  { font-family: var(--lmn-font-display); font-size: var(--lmn-display-xl);  line-height: var(--lmn-display-xl-lh);  letter-spacing: var(--lmn-display-xl-ls);  font-weight: 400; }
+.lmn-display-lg  { font-family: var(--lmn-font-display); font-size: var(--lmn-display-lg);  line-height: var(--lmn-display-lg-lh);  letter-spacing: var(--lmn-display-lg-ls);  font-weight: 400; }
+.lmn-h1 { font-family: var(--lmn-font-ui); font-size: var(--lmn-h1); line-height: var(--lmn-h1-lh); letter-spacing: var(--lmn-h1-ls); font-weight: 700; }
+.lmn-h2 { font-family: var(--lmn-font-ui); font-size: var(--lmn-h2); line-height: var(--lmn-h2-lh); letter-spacing: var(--lmn-h2-ls); font-weight: 700; }
+.lmn-h3 { font-family: var(--lmn-font-ui); font-size: var(--lmn-h3); line-height: var(--lmn-h3-lh); letter-spacing: var(--lmn-h3-ls); font-weight: 600; }
+.lmn-body-lg { font-family: var(--lmn-font-ui); font-size: var(--lmn-body-lg); line-height: var(--lmn-body-lg-lh); font-weight: 400; }
+.lmn-body { font-family: var(--lmn-font-ui); font-size: var(--lmn-body); line-height: var(--lmn-body-lh); font-weight: 400; }
+.lmn-body-sm { font-family: var(--lmn-font-ui); font-size: var(--lmn-body-sm); line-height: var(--lmn-body-sm-lh); font-weight: 400; }
+.lmn-caption { font-family: var(--lmn-font-ui); font-size: var(--lmn-caption); line-height: var(--lmn-caption-lh); letter-spacing: var(--lmn-caption-ls); font-weight: 500; text-transform: uppercase; }
+.lmn-mono { font-family: var(--lmn-font-mono); font-size: var(--lmn-body-sm); letter-spacing: 0; }

@@ -53,6 +53,17 @@ export function SearchSelect({
     return () => document.removeEventListener('mousedown', onDoc)
   }, [])
 
+  // Blocca lo scroll della pagina mentre il dropdown è aperto: su mobile lo
+  // scroll della lista "sforava" sull'app (scroll chaining / momentum iOS).
+  useEffect(() => {
+    if (!open) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [open])
+
   const all = useMemo(() => {
     const q = query.trim().toLowerCase()
     return options

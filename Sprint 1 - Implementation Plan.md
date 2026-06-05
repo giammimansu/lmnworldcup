@@ -117,7 +117,7 @@ SUPABASE_URL=https://xxxxxxxx.supabase.co
 SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 FOOTBALL_DATA_API_KEY=your_football_data_key
-CRON_SECRET=genera_una_stringa_random_lunga
+CRON_SECRET=genera_una_stringa_random_lunga 
 ALLOWED_ORIGINS=http://localhost:5173
 ```
 

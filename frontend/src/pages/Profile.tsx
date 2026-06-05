@@ -104,16 +104,23 @@ function AchievementGrid({ achievements }: { achievements: Achievement[] }) {
 function History({
   stats,
   scorers,
+  isMe,
 }: {
   stats: UserStats
   scorers: Map<number, ScorerPrediction>
+  isMe: boolean
 }) {
   if (stats.history.length === 0)
-    return <p style={{ color: 'var(--lmn-ash-500)', fontSize: 13 }}>Nessun pronostico ancora.</p>
+    return (
+      <p style={{ color: 'var(--lmn-ash-500)', fontSize: 13 }}>
+        {isMe ? 'Nessun pronostico ancora.' : 'Nessuna partita conclusa ancora.'}
+      </p>
+    )
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {stats.history.map((h) => {
         const sc = scorers.get(h.match_id)
+        const hasResult = h.actual_home != null && h.actual_away != null
         return (
         <Link
           key={h.match_id}
@@ -122,12 +129,22 @@ function History({
           style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}
         >
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'var(--lmn-font-ui)', fontWeight: 600, fontSize: 13, color: 'var(--lmn-ash-100)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {h.home_team_name ?? '—'} · {h.away_team_name ?? '—'}
+            {/* Squadre con crest */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--lmn-font-ui)', fontWeight: 600, fontSize: 13, color: 'var(--lmn-ash-100)', overflow: 'hidden' }}>
+              {h.home_team_crest && <img src={h.home_team_crest} alt="" style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />}
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.home_team_name ?? '—'}</span>
+              <span style={{ color: 'var(--lmn-ash-500)', flexShrink: 0 }}>–</span>
+              {h.away_team_crest && <img src={h.away_team_crest} alt="" style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />}
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.away_team_name ?? '—'}</span>
             </div>
-            <div style={{ fontFamily: 'var(--lmn-font-mono)', fontSize: 11, color: 'var(--lmn-ash-500)', marginTop: 2 }}>
-              Tuo: {h.pred_home}–{h.pred_away}
-              {h.actual_home != null && ` · Reale: ${h.actual_home}–${h.actual_away}`}
+            {/* Pronostico vs risultato reale */}
+            <div style={{ fontFamily: 'var(--lmn-font-mono)', fontSize: 11, color: 'var(--lmn-ash-500)', marginTop: 3 }}>
+              Pronostico <span style={{ color: 'var(--lmn-ash-300)' }}>{h.pred_home}–{h.pred_away}</span>
+              {hasResult && (
+                <>
+                  {' · '}Reale <span style={{ color: 'var(--lmn-ash-100)' }}>{h.actual_home}–{h.actual_away}</span>
+                </>
+              )}
             </div>
             {sc && sc.players.length > 0 && (
               <div style={{ fontFamily: 'var(--lmn-font-ui)', fontSize: 11, marginTop: 3, color: 'var(--lmn-ash-500)' }}>
@@ -282,7 +299,7 @@ export default function Profile() {
       <h2 style={{ fontFamily: 'var(--lmn-font-display)', fontSize: 22, letterSpacing: '0.04em', margin: '0 0 12px', color: 'var(--lmn-ash-100)' }}>
         ULTIMI PRONOSTICI
       </h2>
-      <History stats={stats} scorers={scorers} />
+      <History stats={stats} scorers={scorers} isMe={isMe} />
 
     </div>
   )

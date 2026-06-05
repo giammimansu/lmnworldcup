@@ -4,6 +4,7 @@ import { type LeaderboardRow } from '../api/leaderboard'
 import { getLeagueLeaderboard } from '../api/leagues'
 import { getRecap, type Recap } from '../api/recap'
 import { getMatches, type Match } from '../api/matches'
+import { getSpecialQuestions } from '../api/special'
 import { useAuth } from '../auth/AuthContext'
 import { useLeagues } from '../leagues/LeagueContext'
 import { Avatar, Button } from '../components/ui'
@@ -108,87 +109,6 @@ function Trend({ value }: { value: number }) {
   if (value < 0)
     return <span style={{ color: 'var(--lmn-danger-400)', fontSize: 12 }}>▼ {Math.abs(value)}</span>
   return <span style={{ color: 'var(--lmn-ash-500)', fontSize: 12 }}>–</span>
-}
-
-// ------------------------------------------------------------- Podio
-function Podium({ top3 }: { top3: LeaderboardRow[] }) {
-  // Ordine visivo: 2° — 1° — 3°
-  const order = [top3[1], top3[0], top3[2]].filter(Boolean)
-  const heights: Record<number, number> = { 1: 96, 2: 72, 3: 56 }
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        gap: 14,
-        marginBottom: 28,
-      }}
-    >
-      {order.map((row) => (
-        <div
-          key={row.user_id}
-          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flex: 1, maxWidth: 120 }}
-        >
-          <Avatar name={row.display_name} size={row.position === 1 ? 'lg' : 'md'} />
-          <span
-            style={{
-              fontFamily: 'var(--lmn-font-ui)',
-              fontWeight: 600,
-              fontSize: 13,
-              color: 'var(--lmn-ash-100)',
-              textAlign: 'center',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              maxWidth: '100%',
-            }}
-          >
-            {row.display_name}
-          </span>
-          <div
-            style={{
-              width: '100%',
-              height: heights[row.position] ?? 56,
-              background:
-                row.position === 1
-                  ? 'linear-gradient(180deg, rgba(212,168,67,0.35), rgba(212,168,67,0.08))'
-                  : 'var(--lmn-pitch-500, #182038)',
-              border: `1px solid ${row.position === 1 ? 'var(--lmn-gold-600)' : 'var(--lmn-ash-800, #283044)'}`,
-              borderRadius: '8px 8px 0 0',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 2,
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--lmn-font-display)',
-                fontSize: row.position === 1 ? 34 : 26,
-                color: row.position === 1 ? 'var(--lmn-gold-400)' : 'var(--lmn-ash-300)',
-                lineHeight: 1,
-              }}
-            >
-              {row.points}
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--lmn-font-ui)',
-                fontSize: 9,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--lmn-ash-500)',
-              }}
-            >
-              punti
-            </span>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
 }
 
 // ------------------------------------------------------------- Recap giornata
@@ -367,6 +287,17 @@ export default function Home() {
   const navigate = useNavigate()
   const [board, setBoard] = useState<LeaderboardRow[]>([])
   const [state, setState] = useState<'loading' | 'ok' | 'error'>('loading')
+  const [specialDeadline, setSpecialDeadline] = useState<string>()
+  const specialCountdown = useCountdown(specialDeadline)
+
+  // Scadenza pronostici di torneo (la più vicina) per il countdown nel banner.
+  useEffect(() => {
+    getSpecialQuestions()
+      .then((qs) => {
+        if (qs.length) setSpecialDeadline(qs.map((q) => q.deadline).sort()[0])
+      })
+      .catch(() => {})
+  }, [])
 
   // Classifica ristretta alla lega selezionata. Polling ogni 60s.
   useEffect(() => {
@@ -393,9 +324,6 @@ export default function Home() {
       clearInterval(t)
     }
   }, [current?.id, leaguesLoading])
-
-  const top3 = board.slice(0, 3)
-  const rest = board.slice(3)
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px 96px' }}>
@@ -449,6 +377,21 @@ export default function Home() {
           <div style={{ fontSize: 12, color: 'var(--lmn-ash-400)', marginTop: 2 }}>
             Capocannoniere, podio e altro — valgono tanti punti.
           </div>
+          {specialCountdown && (
+            <div style={{ fontSize: 12, marginTop: 4, display: 'flex', alignItems: 'center', gap: 5, color: 'var(--lmn-ash-400)' }}>
+              <Icon name="clock" size={13} />
+              {specialCountdown === 'IN CORSO' ? (
+                <span>Pronostici chiusi</span>
+              ) : (
+                <span>
+                  Chiusura tra{' '}
+                  <span style={{ fontFamily: 'var(--lmn-font-mono)', color: 'var(--lmn-gold-400)', fontWeight: 600 }}>
+                    {specialCountdown}
+                  </span>
+                </span>
+              )}
+            </div>
+          )}
         </div>
         <span style={{ color: 'var(--lmn-ash-500)' }}>›</span>
       </div>
@@ -552,11 +495,9 @@ export default function Home() {
         </div>
       )}
 
-      {state === 'ok' && top3.length > 0 && <Podium top3={top3} />}
-
       {state === 'ok' && board.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {(top3.length === 3 ? rest : board).map((row) => {
+          {board.map((row) => {
             const isMe = row.user_id === user?.id
             return (
               <div

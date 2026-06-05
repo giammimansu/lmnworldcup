@@ -11,6 +11,25 @@ import { getAllPlayers, type Player } from '../api/players'
 import { Badge, Button } from '../components/ui'
 import { Icon } from '../components/Icon'
 import { SearchSelect, type Option } from '../components/SearchSelect'
+import BackButton from '../components/BackButton'
+
+// Countdown alla scadenza dei pronostici di torneo.
+function useCountdown(target: string | undefined) {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
+  if (!target) return null
+  const diff = new Date(target).getTime() - now
+  if (diff <= 0) return 'closed'
+  const d = Math.floor(diff / 86400000)
+  const h = Math.floor((diff % 86400000) / 3600000)
+  const m = Math.floor((diff % 3600000) / 60000)
+  const s = Math.floor((diff % 60000) / 1000)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return d > 0 ? `${d}g ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`
+}
 
 // --------------------------------------------------------------- helpers
 function teamLabel(teams: Team[], tla: string | undefined | null): string {
@@ -217,8 +236,20 @@ export default function Special() {
     load()
   }, [])
 
+  // Scadenza = la più vicina tra le domande (di norma tutte uguali: primo kickoff).
+  const deadline = useMemo(
+    () =>
+      questions.length
+        ? questions.map((q) => q.deadline).sort()[0]
+        : undefined,
+    [questions],
+  )
+  const countdown = useCountdown(deadline)
+
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px 96px' }}>
+      <BackButton to="/" />
+
       <h1
         style={{
           fontFamily: 'var(--lmn-font-display)',
@@ -230,10 +261,40 @@ export default function Special() {
       >
         PRONOSTICI TORNEO
       </h1>
-      <p style={{ color: 'var(--lmn-ash-400)', fontSize: 14, margin: '0 0 20px' }}>
+      <p style={{ color: 'var(--lmn-ash-400)', fontSize: 14, margin: '0 0 16px' }}>
         Pronostici speciali da fare una volta sola, prima del fischio d'inizio. Valgono tanti
         punti: scegli bene.
       </p>
+
+      {countdown && (
+        <div
+          className="lmn-card"
+          style={{
+            padding: '12px 16px',
+            marginBottom: 20,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            border: countdown === 'closed' ? undefined : '1px solid var(--lmn-gold-600)',
+          }}
+        >
+          <span style={{ color: countdown === 'closed' ? 'var(--lmn-ash-500)' : 'var(--lmn-gold-400)' }}>
+            <Icon name="clock" size={18} />
+          </span>
+          {countdown === 'closed' ? (
+            <span style={{ fontSize: 13, color: 'var(--lmn-ash-400)' }}>
+              Pronostici di torneo chiusi.
+            </span>
+          ) : (
+            <span style={{ fontSize: 13, color: 'var(--lmn-ash-200)' }}>
+              Chiusura tra{' '}
+              <span style={{ fontFamily: 'var(--lmn-font-mono)', color: 'var(--lmn-gold-400)', fontWeight: 600 }}>
+                {countdown}
+              </span>
+            </span>
+          )}
+        </div>
+      )}
 
       {state === 'loading' && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>

@@ -162,63 +162,85 @@ export function SearchSelect({
         </span>
       </button>
       {open && (
-        <div
-          className="lmn-card"
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            left: 0,
-            right: 0,
-            zIndex: 20,
-            padding: 8,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 6,
-            boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
-          }}
-        >
-          <div style={{ position: 'relative' }}>
-            <input
-              className="lmn-input"
-              placeholder="Cerca…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={onKey}
-              style={{ padding: '10px 32px 10px 12px', width: '100%', boxSizing: 'border-box' }}
-            />
-            {query && (
+        <>
+          {/* Backdrop: chiude al tap fuori */}
+          <div
+            onClick={() => setOpen(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.5)' }}
+          />
+          {/* Bottom-sheet: sempre dentro il viewport, lista scrollabile internamente */}
+          <div
+            className="lmn-card"
+            style={{
+              position: 'fixed',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 1001,
+              maxHeight: '80vh',
+              borderRadius: '16px 16px 0 0',
+              padding: '10px 12px calc(12px + env(safe-area-inset-bottom))',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              boxShadow: '0 -12px 32px rgba(0,0,0,0.5)',
+            }}
+          >
+            {/* Maniglia + chiudi */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', paddingBottom: 2 }}>
+              <span style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--lmn-ash-700, #3a4257)' }} />
               <button
                 type="button"
-                onClick={() => setQuery('')}
-                aria-label="Cancella"
-                style={{
-                  position: 'absolute',
-                  right: 6,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--lmn-ash-500)',
-                  fontSize: 18,
-                  cursor: 'pointer',
-                  padding: 4,
-                }}
+                onClick={() => setOpen(false)}
+                aria-label="Chiudi"
+                style={{ position: 'absolute', right: 0, top: -2, background: 'none', border: 'none', color: 'var(--lmn-ash-500)', fontSize: 22, lineHeight: 1, cursor: 'pointer', padding: 4 }}
               >
                 ×
               </button>
-            )}
-          </div>
-          <div
-            ref={listRef}
-            style={{
-              overflowY: 'auto',
-              maxHeight: 300,
-              display: 'flex',
-              flexDirection: 'column',
-              WebkitOverflowScrolling: 'touch',
-              overscrollBehavior: 'contain',
-            }}
-          >
+            </div>
+            <div style={{ position: 'relative' }}>
+              <input
+                className="lmn-input"
+                placeholder="Cerca…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={onKey}
+                style={{ padding: '10px 32px 10px 12px', width: '100%', boxSizing: 'border-box' }}
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  aria-label="Cancella"
+                  style={{
+                    position: 'absolute',
+                    right: 6,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--lmn-ash-500)',
+                    fontSize: 18,
+                    cursor: 'pointer',
+                    padding: 4,
+                  }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            <div
+              ref={listRef}
+              style={{
+                overflowY: 'auto',
+                flex: 1,
+                minHeight: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehavior: 'contain',
+              }}
+            >
             {filtered.length === 0 && (
               <div style={{ padding: 12, fontSize: 13, color: 'var(--lmn-ash-500)' }}>
                 Nessun risultato.
@@ -265,8 +287,9 @@ export function SearchSelect({
                 </button>
               )
             })}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   )

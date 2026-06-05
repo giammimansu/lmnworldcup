@@ -168,7 +168,6 @@ export function SearchSelect({
         >
           <div style={{ position: 'relative' }}>
             <input
-              autoFocus
               className="lmn-input"
               placeholder="Cerca…"
               value={query}

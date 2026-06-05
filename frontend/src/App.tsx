@@ -15,6 +15,7 @@ import PredictList from './pages/PredictList'
 import Profile from './pages/Profile'
 import Regole from './pages/Regole'
 import SetPassword from './pages/SetPassword'
+import Special from './pages/Special'
 import Welcome from './pages/Welcome'
 
 function guard(el: React.ReactNode) {
@@ -44,6 +45,7 @@ function Shell() {
         <Route path="/predict" element={guard(<PredictList />)} />
         <Route path="/match/:matchId" element={guard(<Predict />)} />
         <Route path="/bracket" element={guard(<Bracket />)} />
+        <Route path="/special" element={guard(<Special />)} />
         <Route path="/leagues" element={guard(<Leagues />)} />
         <Route path="/profile" element={guard(<Profile />)} />
         <Route path="/profile/:userId" element={guard(<Profile />)} />

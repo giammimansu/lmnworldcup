@@ -23,7 +23,9 @@
       "Bash(uv pip *)",
       "Bash(./.venv/Scripts/python.exe -c \"from app.main import app, scheduler; print\\('OK routes:', len\\(app.routes\\)\\); print\\('lifespan set:', app.router.lifespan_context is not None\\)\")",
       "Bash(./.venv/Scripts/python.exe -c ' *)",
-      "Bash(./.venv/Scripts/python.exe -m pytest -q)"
+      "Bash(./.venv/Scripts/python.exe -m pytest -q)",
+      "Bash(python -c \"from app.main import app; print\\('OK routes:', [r.path for r in app.routes if 'special' in r.path or '/players/teams' in r.path]\\)\")",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }

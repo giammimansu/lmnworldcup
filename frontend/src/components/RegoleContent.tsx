@@ -71,6 +71,37 @@ export function RegoleContent() {
         />
       </Section>
 
+      {/* Pronostici di torneo */}
+      <Section title="PRONOSTICI DI TORNEO" icon="star">
+        <p style={{ fontSize: 13, color: 'var(--lmn-ash-400)', margin: '0 0 12px', lineHeight: 1.6 }}>
+          Pronostici speciali da fare <strong style={{ color: 'var(--lmn-ash-100)' }}>una volta sola</strong>, prima
+          del fischio d'inizio del torneo. Valgono molti punti e si risolvono a fine torneo.
+        </p>
+        <ScoreRow
+          badge={<Badge variant="points">10 PT</Badge>}
+          label="Capocannoniere"
+          desc="Il giocatore che segna più gol nel torneo."
+        />
+        <ScoreRow
+          badge={<Badge variant="points">8 PT</Badge>}
+          label="Squadra con più gol fatti"
+          desc="La nazionale che segna di più."
+        />
+        <ScoreRow
+          badge={<Badge variant="points">8 PT</Badge>}
+          label="Squadra con più gol subiti"
+          desc="La nazionale che incassa di più."
+        />
+        <ScoreRow
+          badge={<Badge variant="points">5 PT</Badge>}
+          label="Podio finale (1ª · 2ª · 3ª)"
+          desc="5 punti per OGNI posizione esatta: fino a 15 se azzecchi tutto il podio."
+        />
+        <p style={{ fontSize: 12, color: 'var(--lmn-ash-500)', marginTop: 8 }}>
+          Si chiudono al primo calcio d'inizio del torneo. I punti NON sono moltiplicati per la fase.
+        </p>
+      </Section>
+
       {/* Moltiplicatori di fase */}
       <Section title="MOLTIPLICATORI DI FASE" icon="bracket">
         <div className="lmn-card" style={{ padding: '4px 16px 8px' }}>

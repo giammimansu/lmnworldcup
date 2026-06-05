@@ -66,6 +66,20 @@ def compute_leaderboard() -> list[dict]:
         if sp["match_id"] in finished_ids:
             s["points"] += sp["points"] or 0
 
+    # Pronostici di torneo (Sprint 9): i punti delle domande risolte confluiscono
+    # negli stessi totali. points è NULL finché la domanda non è risolta.
+    special_preds = (
+        supabase_admin.table("special_predictions")
+        .select("user_id, points")
+        .execute()
+        .data
+    )
+    for sp in special_preds:
+        s = stats.get(sp["user_id"])
+        if s is None:
+            continue
+        s["points"] += sp["points"] or 0
+
     rows = sorted(
         stats.values(), key=lambda s: (-s["points"], s["display_name"].lower())
     )

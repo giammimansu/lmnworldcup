@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from app.auth import require_admin
 from app.database import supabase_admin
 from app.services.scoring import score_match
+from app.services.special_scoring import score_special
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -115,3 +116,91 @@ def sync_log(_admin: dict = Depends(require_admin)):
         .execute()
         .data
     )
+
+
+# --------------------------------------------------------------------------- #
+# Sprint 9 — Pronostici di torneo: risoluzione + suggerimenti automatici.
+# --------------------------------------------------------------------------- #
+class ResolveSpecial(BaseModel):
+    correct_answer: dict
+
+
+@router.put("/special/{code}/resolve")
+def resolve_special(code: str, body: ResolveSpecial, _admin: dict = Depends(require_admin)):
+    """Risolve una domanda di torneo e assegna i punti (idempotente)."""
+    existing = (
+        supabase_admin.table("special_questions").select("code").eq("code", code).limit(1).execute()
+    )
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Domanda non trovata")
+    supabase_admin.table("special_questions").update(
+        {"resolved": True, "correct_answer": body.correct_answer}
+    ).eq("code", code).execute()
+    return score_special(code)
+
+
+@router.get("/special/{code}/suggest")
+def suggest_special(code: str, _admin: dict = Depends(require_admin)):
+    """Calcola dai dati la risposta probabile, da confermare a mano.
+
+    Dove non calcolabile (dati mancanti / domanda non derivabile) ritorna suggested=None.
+    """
+    matches = supabase_admin.table("matches").select("*").execute().data
+
+    if code == "most_goals_team":
+        scored: dict[str, int] = {}
+        for m in matches:
+            if m.get("home_score") is not None and m.get("away_score") is not None:
+                scored[m["home_team_tla"]] = scored.get(m["home_team_tla"], 0) + m["home_score"]
+                scored[m["away_team_tla"]] = scored.get(m["away_team_tla"], 0) + m["away_score"]
+        if scored:
+            top = max(scored, key=scored.get)
+            return {"suggested": {"team_tla": top}, "detail": scored}
+
+    if code == "most_conceded_team":
+        conceded: dict[str, int] = {}
+        for m in matches:
+            if m.get("home_score") is not None and m.get("away_score") is not None:
+                conceded[m["home_team_tla"]] = conceded.get(m["home_team_tla"], 0) + m["away_score"]
+                conceded[m["away_team_tla"]] = conceded.get(m["away_team_tla"], 0) + m["home_score"]
+        if conceded:
+            top = max(conceded, key=conceded.get)
+            return {"suggested": {"team_tla": top}, "detail": conceded}
+
+    if code == "top_scorer":
+        goals = supabase_admin.table("match_goals").select("player_id").execute().data
+        cnt: dict[int, int] = {}
+        for g in goals:
+            if g.get("player_id"):
+                cnt[g["player_id"]] = cnt.get(g["player_id"], 0) + 1
+        if cnt:
+            top = max(cnt, key=cnt.get)
+            return {"suggested": {"player_id": top}, "detail": cnt}
+
+    if code == "podium":
+        final = next(
+            (m for m in matches if m["stage"] == "FINAL" and m["status"] == "FINISHED"), None
+        )
+        third = next(
+            (m for m in matches if m["stage"] == "THIRD_PLACE" and m["status"] == "FINISHED"), None
+        )
+        podium: list[str] = []
+        if final and final.get("home_score") is not None:
+            win = (
+                final["home_team_tla"]
+                if final["home_score"] >= final["away_score"]
+                else final["away_team_tla"]
+            )
+            sec = final["away_team_tla"] if win == final["home_team_tla"] else final["home_team_tla"]
+            podium = [win, sec]
+            if third and third.get("home_score") is not None:
+                trd = (
+                    third["home_team_tla"]
+                    if third["home_score"] >= third["away_score"]
+                    else third["away_team_tla"]
+                )
+                podium.append(trd)
+        if len(podium) == 3:
+            return {"suggested": {"podium": podium}}
+
+    return {"suggested": None, "detail": "Da inserire manualmente"}

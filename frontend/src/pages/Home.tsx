@@ -426,6 +426,34 @@ export default function Home() {
       <NextMatchWidget />
 
       <div
+        className="lmn-card lmn-card--hoverable"
+        onClick={() => navigate('/special')}
+        style={{
+          padding: 16,
+          marginBottom: 24,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          border: '1px solid var(--lmn-gold-600)',
+          background: 'linear-gradient(180deg, rgba(212,168,67,0.10), rgba(212,168,67,0.02))',
+        }}
+      >
+        <span style={{ color: 'var(--lmn-gold-400)' }}>
+          <Icon name="star" size={24} filled />
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'var(--lmn-font-ui)', fontWeight: 600, fontSize: 14, color: 'var(--lmn-ash-100)' }}>
+            Pronostici di torneo
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--lmn-ash-400)', marginTop: 2 }}>
+            Capocannoniere, podio e altro — valgono tanti punti.
+          </div>
+        </div>
+        <span style={{ color: 'var(--lmn-ash-500)' }}>›</span>
+      </div>
+
+      <div
         style={{
           display: 'flex',
           alignItems: 'center',

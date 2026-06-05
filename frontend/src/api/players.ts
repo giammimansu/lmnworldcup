@@ -12,3 +12,8 @@ export interface Player {
 export function getPlayers(teamTla: string): Promise<Player[]> {
   return apiFetch<Player[]>(`/players?team_tla=${encodeURIComponent(teamTla)}`)
 }
+
+// Tutti i giocatori (per il dropdown capocannoniere dei pronostici di torneo).
+export function getAllPlayers(): Promise<Player[]> {
+  return apiFetch<Player[]>('/players')
+}

@@ -19,6 +19,7 @@ from app.routers import (
     predictions,
     recap,
     scoring,
+    special,
     sync,
     users,
 )
@@ -62,6 +63,7 @@ app.include_router(leagues.router)
 app.include_router(predictions.router)
 app.include_router(recap.router)
 app.include_router(scoring.router)
+app.include_router(special.router)
 app.include_router(sync.router)
 app.include_router(users.router)
 

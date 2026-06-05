@@ -3,6 +3,7 @@ import { AuthProvider } from './auth/AuthContext'
 import { ProtectedRoute } from './auth/ProtectedRoute'
 import { LeagueProvider } from './leagues/LeagueContext'
 import { BottomNav } from './components/BottomNav'
+import AddToHome from './components/AddToHome'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import Admin from './pages/Admin'
 import Bracket from './pages/Bracket'
@@ -56,6 +57,7 @@ function Shell() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!hideNav(pathname) && <BottomNav />}
+      {!hideNav(pathname) && <AddToHome />}
     </>
   )
 }

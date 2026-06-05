@@ -134,6 +134,32 @@ export function RegoleContent() {
           </p>
         </div>
       </Section>
+
+      {/* Installazione PWA */}
+      <Section title="INSTALLA L'APP SULLA HOME" icon="home">
+        <div className="lmn-card" style={{ padding: '14px 16px', marginBottom: 8 }}>
+          <div style={{ fontFamily: 'var(--lmn-font-ui)', fontWeight: 600, fontSize: 14, color: 'var(--lmn-gold-400)', marginBottom: 8 }}>
+            iPhone / iPad (Safari)
+          </div>
+          <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--lmn-ash-300)', lineHeight: 1.7 }}>
+            <li>Apri il sito in <strong style={{ color: 'var(--lmn-ash-100)' }}>Safari</strong> (su iOS solo Safari può aggiungere alla Home).</li>
+            <li>Tocca <strong style={{ color: 'var(--lmn-ash-100)' }}>Condividi</strong> (quadrato con freccia ↑).</li>
+            <li>Scorri e tocca <strong style={{ color: 'var(--lmn-ash-100)' }}>“Aggiungi alla schermata Home”</strong>.</li>
+            <li>Conferma con <strong style={{ color: 'var(--lmn-ash-100)' }}>Aggiungi</strong>.</li>
+          </ol>
+        </div>
+        <div className="lmn-card" style={{ padding: '14px 16px' }}>
+          <div style={{ fontFamily: 'var(--lmn-font-ui)', fontWeight: 600, fontSize: 14, color: 'var(--lmn-gold-400)', marginBottom: 8 }}>
+            Android (Chrome)
+          </div>
+          <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: 'var(--lmn-ash-300)', lineHeight: 1.7 }}>
+            <li>Apri il sito in <strong style={{ color: 'var(--lmn-ash-100)' }}>Chrome</strong>.</li>
+            <li>Tocca il menu <strong style={{ color: 'var(--lmn-ash-100)' }}>⋮</strong> in alto a destra.</li>
+            <li>Tocca <strong style={{ color: 'var(--lmn-ash-100)' }}>“Installa app”</strong> (o “Aggiungi a schermata Home”).</li>
+            <li>Conferma: l'icona LMN apparirà tra le app.</li>
+          </ol>
+        </div>
+      </Section>
     </>
   )
 }

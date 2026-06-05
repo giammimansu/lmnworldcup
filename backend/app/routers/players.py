@@ -58,4 +58,16 @@ def list_players(
         if len(batch) < PAGE:
             break
         start += PAGE
+
+    # Ordina: squadra, poi ruolo (portiere, difensori, centrocampisti, attaccanti),
+    # poi numero di maglia / nome.
+    role_rank = {"Goalkeeper": 0, "Defender": 1, "Midfielder": 2, "Forward": 3}
+    out.sort(
+        key=lambda p: (
+            p.get("team_name") or "",
+            role_rank.get(p.get("position"), 9),
+            p.get("shirt_number") if p.get("shirt_number") is not None else 999,
+            p.get("name") or "",
+        )
+    )
     return out

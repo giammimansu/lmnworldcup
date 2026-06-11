@@ -35,5 +35,10 @@ export function kickoffPassed(utcDate: string): boolean {
 }
 
 export function localTime(utcDate: string): string {
-  return new Date(utcDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return new Date(utcDate).toLocaleTimeString('it-IT', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Europe/Rome',
+  })
 }

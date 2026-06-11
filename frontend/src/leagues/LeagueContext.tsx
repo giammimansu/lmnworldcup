@@ -66,6 +66,9 @@ export function LeagueProvider({ children }: { children: ReactNode }) {
       return
     }
     let alive = true
+    // Riporta a "loading" finché non sappiamo le leghe di questo utente: evita che
+    // ProtectedRoute veda leagues=[] con loading=false e rediriga a /welcome a vuoto.
+    setLoading(true)
     ;(async () => {
       // Consuma un eventuale codice di join in sospeso (deep link prima del login).
       const pending = localStorage.getItem(LS_PENDING_JOIN)

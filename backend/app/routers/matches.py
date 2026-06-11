@@ -1,4 +1,5 @@
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
@@ -7,6 +8,10 @@ from app.database import supabase_admin
 from app.models.matches import Match
 
 router = APIRouter(prefix="/matches", tags=["matches"])
+
+# Le partite vengono raggruppate per giorno di calendario italiano, non UTC:
+# una partita alle 00:00 ora italiana ha utc_date il giorno prima (UTC+2 d'estate).
+ROME = ZoneInfo("Europe/Rome")
 
 
 @router.get("", response_model=list[Match])
@@ -21,8 +26,8 @@ def list_matches(
     query = supabase_admin.table("matches").select("*")
 
     if date_filter is not None:
-        day_start = datetime.combine(date_filter, time.min, tzinfo=timezone.utc)
-        day_end = datetime.combine(date_filter, time.max, tzinfo=timezone.utc)
+        day_start = datetime.combine(date_filter, time.min, tzinfo=ROME)
+        day_end = datetime.combine(date_filter, time.max, tzinfo=ROME)
         query = query.gte("utc_date", day_start.isoformat()).lte(
             "utc_date", day_end.isoformat()
         )

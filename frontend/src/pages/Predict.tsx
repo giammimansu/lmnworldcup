@@ -5,14 +5,18 @@ import { getMatch, type Match } from '../api/matches'
 import {
   createPrediction,
   createScorerPrediction,
-  getMatchSummary,
   getMyPredictions,
   getMyScorerPredictions,
-  type MatchSummary,
   type ScorerPrediction,
 } from '../api/predictions'
+import {
+  getLeagueMatchPredictions,
+  type League,
+  type LeagueMatchPredictions,
+} from '../api/leagues'
+import { useLeagues } from '../leagues/LeagueContext'
 import { getPlayers, type Player } from '../api/players'
-import { Badge, Button } from '../components/ui'
+import { Avatar, Badge, Button } from '../components/ui'
 import { Icon } from '../components/Icon'
 import { SearchSelect, type Option } from '../components/SearchSelect'
 import {
@@ -73,6 +77,7 @@ const WHEEL_ITEM = 48 // altezza riga
 const WHEEL_VISIBLE = 3 // righe visibili (dispari → 1 centrale)
 const WHEEL_MAX = 20 // gol massimi selezionabili
 const WHEEL_PAD = ((WHEEL_VISIBLE - 1) / 2) * WHEEL_ITEM
+const MAX_SCORERS = 3 // marcatori pronosticabili per squadra (anche se i gol > 3)
 
 function ScoreBox({
   value,
@@ -194,28 +199,78 @@ function ScoreBox({
 }
 
 // ------------------------------------------------------------- Summary
-function SummaryPanel({ summary }: { summary: MatchSummary }) {
+// Badge punti: verde = esatto, ambra = segno, grigio = 0/sbagliato.
+function pointsBadgeStyle(outcome: string): React.CSSProperties {
+  if (outcome === 'exact')
+    return { background: 'rgba(34,168,95,0.18)', color: 'var(--lmn-success-400)' }
+  if (outcome === 'sign')
+    return { background: 'rgba(212,168,67,0.18)', color: 'var(--lmn-gold-400)' }
+  if (outcome === 'pending')
+    return { background: 'var(--lmn-pitch-500, #182038)', color: 'var(--lmn-ash-400)' }
+  return { background: 'var(--lmn-pitch-500, #182038)', color: 'var(--lmn-ash-500)' }
+}
+
+function SummaryPanel({
+  data,
+  leagues,
+  selectedLeagueId,
+  onSelectLeague,
+}: {
+  data: LeagueMatchPredictions
+  leagues: League[]
+  selectedLeagueId: string
+  onSelectLeague: (id: string) => void
+}) {
   const bars: { label: string; pct: number }[] = [
-    { label: '1', pct: summary.signs.home },
-    { label: 'X', pct: summary.signs.draw },
-    { label: '2', pct: summary.signs.away },
+    { label: '1', pct: data.signs.home },
+    { label: 'X', pct: data.signs.draw },
+    { label: '2', pct: data.signs.away },
   ]
+  const selectedName = leagues.find((l) => l.id === selectedLeagueId)?.name
   return (
     <div className="lmn-card" style={{ padding: 24, marginTop: 16 }}>
-      <h3
-        style={{
-          fontFamily: 'var(--lmn-font-display)',
-          fontSize: 20,
-          letterSpacing: '0.04em',
-          margin: '0 0 16px',
-          color: 'var(--lmn-ash-100)',
-        }}
-      >
-        I PRONOSTICI DEGLI ALTRI
-      </h3>
-      {summary.total === 0 ? (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
+        <h3
+          style={{
+            fontFamily: 'var(--lmn-font-display)',
+            fontSize: 20,
+            letterSpacing: '0.04em',
+            margin: 0,
+            color: 'var(--lmn-ash-100)',
+          }}
+        >
+          I PRONOSTICI DELLA LEGA
+        </h3>
+        {leagues.length > 1 ? (
+          <select
+            value={selectedLeagueId}
+            onChange={(e) => onSelectLeague(e.target.value)}
+            style={{
+              background: 'var(--lmn-pitch-500, #182038)',
+              color: 'var(--lmn-ash-100)',
+              border: '1px solid var(--lmn-ash-800, #283044)',
+              borderRadius: 8,
+              padding: '6px 10px',
+              fontFamily: 'var(--lmn-font-ui)',
+              fontSize: 13,
+              maxWidth: 160,
+            }}
+          >
+            {leagues.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+        ) : selectedName ? (
+          <span style={{ fontFamily: 'var(--lmn-font-ui)', fontSize: 12, color: 'var(--lmn-gold-400)', whiteSpace: 'nowrap' }}>
+            {selectedName}
+          </span>
+        ) : null}
+      </div>
+      {data.total === 0 ? (
         <p style={{ color: 'var(--lmn-ash-400)', fontSize: 14, margin: 0 }}>
-          Nessun pronostico su questa partita.
+          Nessun pronostico in questa lega su questa partita.
         </p>
       ) : (
         <>
@@ -227,7 +282,7 @@ function SummaryPanel({ summary }: { summary: MatchSummary }) {
               margin: '0 0 14px',
             }}
           >
-            {summary.total} pronostici totali
+            {data.total} pronostici nella lega
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {bars.map((b) => (
@@ -259,7 +314,7 @@ function SummaryPanel({ summary }: { summary: MatchSummary }) {
               </div>
             ))}
           </div>
-          {summary.top_scores.length > 0 && (
+          {data.top_scores.length > 0 && (
             <div style={{ marginTop: 18 }}>
               <div
                 style={{
@@ -273,8 +328,8 @@ function SummaryPanel({ summary }: { summary: MatchSummary }) {
               >
                 Risultati più giocati
               </div>
-              <div style={{ display: 'flex', gap: 10 }}>
-                {summary.top_scores.map((s, i) => (
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {data.top_scores.map((s, i) => (
                   <div
                     key={i}
                     style={{
@@ -302,6 +357,121 @@ function SummaryPanel({ summary }: { summary: MatchSummary }) {
               </div>
             </div>
           )}
+
+          {/* Pronostici di ogni membro della lega */}
+          <div style={{ marginTop: 22 }}>
+            <div
+              style={{
+                fontFamily: 'var(--lmn-font-ui)',
+                fontSize: 11,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--lmn-ash-500)',
+                marginBottom: 12,
+              }}
+            >
+              Tutti i pronostici
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {data.predictions.map((p) => {
+                const pending = p.outcome === 'pending'
+                const resultPts = p.points || 0
+                const scorerPts = p.scorer_points ?? 0
+                const total = resultPts + scorerPts
+                return (
+                <div
+                  key={p.user_id}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                    padding: '10px 0',
+                    borderBottom: '1px solid var(--lmn-ash-900, #1c2438)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <Avatar name={p.display_name} size="sm" />
+                    <span style={{ flex: 1, fontSize: 13, color: 'var(--lmn-ash-200)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {p.display_name}
+                    </span>
+                    <span style={{ fontFamily: 'var(--lmn-font-mono)', fontSize: 14, color: 'var(--lmn-ash-100)', minWidth: 44, textAlign: 'center' }}>
+                      {p.home_score}–{p.away_score}
+                    </span>
+                    {/* Totale punti del pronostico (risultato + marcatori) */}
+                    <span
+                      style={{
+                        fontFamily: 'var(--lmn-font-display)',
+                        fontSize: 18,
+                        lineHeight: 1,
+                        minWidth: 46,
+                        textAlign: 'right',
+                        color: pending
+                          ? 'var(--lmn-ash-500)'
+                          : total > 0
+                            ? 'var(--lmn-gold-400)'
+                            : 'var(--lmn-ash-500)',
+                      }}
+                    >
+                      {pending ? '—' : total}
+                      {!pending && (
+                        <span style={{ fontFamily: 'var(--lmn-font-ui)', fontSize: 9, letterSpacing: '0.06em', color: 'var(--lmn-ash-500)', marginLeft: 3 }}>
+                          PT
+                        </span>
+                      )}
+                    </span>
+                  </div>
+
+                  {/* Dettaglio punti: risultato + marcatori, sempre etichettati */}
+                  {!pending && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, paddingLeft: 38 }}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 5,
+                          fontFamily: 'var(--lmn-font-ui)',
+                          fontSize: 11,
+                          fontWeight: 600,
+                          padding: '3px 8px',
+                          borderRadius: 6,
+                          ...pointsBadgeStyle(p.outcome),
+                        }}
+                      >
+                        Risultato {resultPts > 0 ? `+${resultPts}` : '0'}
+                      </span>
+                      {p.scorer_names && p.scorer_names.length > 0 && (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            fontFamily: 'var(--lmn-font-ui)',
+                            fontSize: 11,
+                            fontWeight: 600,
+                            padding: '3px 8px',
+                            borderRadius: 6,
+                            background: scorerPts > 0 ? 'rgba(34,168,95,0.18)' : 'var(--lmn-pitch-500, #182038)',
+                            color: scorerPts > 0 ? 'var(--lmn-success-400)' : 'var(--lmn-ash-500)',
+                          }}
+                          title={p.scorer_names.join(', ')}
+                        >
+                          ⚽ Marcatori {scorerPts > 0 ? `+${scorerPts}` : '0'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Nomi marcatori previsti */}
+                  {p.scorer_names && p.scorer_names.length > 0 && (
+                    <div style={{ fontSize: 11, color: 'var(--lmn-ash-500)', paddingLeft: 38 }}>
+                      {p.scorer_names.join(', ')}
+                    </div>
+                  )}
+                </div>
+                )
+              })}
+            </div>
+          </div>
         </>
       )}
     </div>
@@ -367,13 +537,17 @@ function ScorerSlots({
 export default function Predict() {
   const { matchId } = useParams()
   const id = Number(matchId)
+  const { current, leagues } = useLeagues()
+  // Lega di cui vedere i pronostici: default = lega corrente, cambiabile via dropdown.
+  const [viewLeagueId, setViewLeagueId] = useState<string | null>(null)
+  const viewLeague = leagues.find((l) => l.id === viewLeagueId) ?? current
 
   const [match, setMatch] = useState<Match | null>(null)
   const [home, setHome] = useState('')
   const [away, setAway] = useState('')
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ kind: 'success' | 'error'; message: string } | null>(null)
-  const [summary, setSummary] = useState<MatchSummary | null>(null)
+  const [summary, setSummary] = useState<LeagueMatchPredictions | null>(null)
   const [homePlayers, setHomePlayers] = useState<Player[]>([])
   const [awayPlayers, setAwayPlayers] = useState<Player[]>([])
   const [scorerHome, setScorerHome] = useState<(number | '')[]>([])
@@ -417,12 +591,13 @@ export default function Predict() {
     }
   }, [match?.home_team_tla, match?.away_team_tla])
 
-  // Slot marcatore = numero di gol previsti per squadra (preserva le scelte)
+  // Slot marcatore = gol previsti per squadra, ma al massimo MAX_SCORERS (un 5-5
+  // chiede comunque solo 3 marcatori per lato). Preserva le scelte.
   useEffect(() => {
     const resize = (prev: (number | '')[], n: number) =>
       prev.length === n ? prev : Array.from({ length: n }, (_, i) => prev[i] ?? '')
-    const hn = home === '' ? 0 : Number(home)
-    const an = away === '' ? 0 : Number(away)
+    const hn = Math.min(home === '' ? 0 : Number(home), MAX_SCORERS)
+    const an = Math.min(away === '' ? 0 : Number(away), MAX_SCORERS)
     setScorerHome((prev) => resize(prev, hn))
     setScorerAway((prev) => resize(prev, an))
   }, [home, away])
@@ -430,18 +605,27 @@ export default function Predict() {
   // Pre-popola i marcatori salvati, suddivisi per squadra
   useEffect(() => {
     if (!myScorer || !match) return
-    const h = myScorer.players.filter((p) => p.team_tla === match.home_team_tla).map((p) => p.player_id)
-    const a = myScorer.players.filter((p) => p.team_tla === match.away_team_tla).map((p) => p.player_id)
+    const h = myScorer.players.filter((p) => p.team_tla === match.home_team_tla).map((p) => p.player_id).slice(0, MAX_SCORERS)
+    const a = myScorer.players.filter((p) => p.team_tla === match.away_team_tla).map((p) => p.player_id).slice(0, MAX_SCORERS)
     if (h.length) setScorerHome(h)
     if (a.length) setScorerAway(a)
   }, [myScorer, match])
 
-  // Summary visibile solo dopo il kickoff
+  // Allinea la lega visualizzata a quella corrente al primo caricamento.
   useEffect(() => {
-    if (match && closed) {
-      getMatchSummary(id).then(setSummary).catch(() => setSummary(null))
+    if (current && viewLeagueId === null) setViewLeagueId(current.id)
+  }, [current, viewLeagueId])
+
+  // Pronostici della lega: visibili solo dopo il kickoff e con una lega selezionata
+  useEffect(() => {
+    if (match && closed && viewLeague) {
+      getLeagueMatchPredictions(viewLeague.id, id)
+        .then(setSummary)
+        .catch(() => setSummary(null))
+    } else {
+      setSummary(null)
     }
-  }, [match, closed, id])
+  }, [match, closed, id, viewLeague?.id])
 
   useEffect(() => {
     if (!toast) return
@@ -595,6 +779,11 @@ export default function Predict() {
               <span>Marcatori previsti</span>
               <span style={{ color: 'var(--lmn-gold-400)' }}>+2 ciascuno</span>
             </div>
+            {(Number(home) > MAX_SCORERS || Number(away) > MAX_SCORERS) && (
+              <div style={{ fontSize: 11, color: 'var(--lmn-ash-500)', marginBottom: 8 }}>
+                Massimo {MAX_SCORERS} marcatori per squadra, anche con più gol previsti.
+              </div>
+            )}
             <ScorerSlots
               teamLabel={match.home_team_name ?? 'Casa'}
               players={homePlayers}
@@ -667,7 +856,14 @@ export default function Predict() {
         )}
       </div>
 
-      {closed && summary && <SummaryPanel summary={summary} />}
+      {closed && summary && (
+        <SummaryPanel
+          data={summary}
+          leagues={leagues}
+          selectedLeagueId={viewLeague?.id ?? ''}
+          onSelectLeague={setViewLeagueId}
+        />
+      )}
 
       {toast && <Toast kind={toast.kind} message={toast.message} />}
     </div>

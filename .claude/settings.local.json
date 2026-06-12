@@ -25,7 +25,24 @@
       "Bash(./.venv/Scripts/python.exe -c ' *)",
       "Bash(./.venv/Scripts/python.exe -m pytest -q)",
       "Bash(python -c \"from app.main import app; print\\('OK routes:', [r.path for r in app.routes if 'special' in r.path or '/players/teams' in r.path]\\)\")",
-      "Bash(echo \"EXIT: $?\")"
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(findstr /I \".env\")",
+      "Bash(grep -iE \"eyJ[A-Za-z0-9_-]{20,}|service_role|sk_live|AKIA|-----BEGIN|password.*=.*['\\\\\"][^'\\\\\"]{8,}\")",
+      "Bash(git rm *)",
+      "Bash(findstr /i \"match\")",
+      "Bash(findstr /i \"date\\\\|schedul\\\\|group\\\\|day\")",
+      "Bash(findstr /i \"frontend/src\")",
+      "Bash(findstr /i \".tsx .ts .js .vue\")",
+      "Bash(findstr /v node_modules)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8000)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit -m '@ *)",
+      "Bash(git commit --amend -m 'fix: timezone partite e race redirect /welcome *)",
+      "Bash(git push *)",
+      "Bash(ls -la .env)",
+      "Bash(grep -c SERVICE_ROLE .env)"
     ]
   }
 }

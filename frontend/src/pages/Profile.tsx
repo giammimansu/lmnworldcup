@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BackButton from '../components/BackButton'
-import { getMyScorerPredictions, type ScorerPrediction } from '../api/predictions'
 import {
   getMyAchievements,
   getMyStats,
   getUserStats,
   type Achievement,
+  type SpecialStat,
   type UserStats,
 } from '../api/stats'
 import { useAuth } from '../auth/AuthContext'
@@ -14,7 +14,7 @@ import { Avatar, Badge } from '../components/ui'
 import { Icon, type IconName } from '../components/Icon'
 
 // ------------------------------------------------------------- Stat card
-function StatCard({ label, value, unit, icon }: { label: string; value: number | string; unit?: string; icon: IconName }) {
+function StatCard({ label, value, unit, icon, sub }: { label: string; value: number | string; unit?: string; icon: IconName; sub?: string }) {
   return (
     <div className="lmn-card" style={{ padding: 18 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -31,42 +31,11 @@ function StatCard({ label, value, unit, icon }: { label: string; value: number |
           <span style={{ fontFamily: 'var(--lmn-font-display)', fontSize: 22, color: 'var(--lmn-ash-400)' }}>{unit}</span>
         )}
       </div>
-    </div>
-  )
-}
-
-// ------------------------------------------------------------- Bar chart (solo div/CSS)
-function PointsChart({ data }: { data: { matchday: number; points: number }[] }) {
-  if (data.length === 0)
-    return (
-      <p style={{ color: 'var(--lmn-ash-500)', fontSize: 13 }}>
-        Nessun punto ancora: i grafici arrivano con le prime partite giocate.
-      </p>
-    )
-  const max = Math.max(...data.map((d) => d.points), 1)
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 140, paddingTop: 8 }}>
-      {data.map((d) => (
-        <div key={d.matchday} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%', justifyContent: 'flex-end' }}>
-          <span style={{ fontFamily: 'var(--lmn-font-mono)', fontSize: 11, color: 'var(--lmn-gold-400)' }}>
-            {d.points}
-          </span>
-          <div
-            style={{
-              width: '100%',
-              maxWidth: 42,
-              height: `${(d.points / max) * 100}%`,
-              minHeight: 4,
-              background: 'linear-gradient(180deg, var(--lmn-gold-500), rgba(212,168,67,0.35))',
-              borderRadius: '4px 4px 0 0',
-              transition: 'height 400ms var(--lmn-ease-out, ease-out)',
-            }}
-          />
-          <span style={{ fontFamily: 'var(--lmn-font-ui)', fontSize: 10, color: 'var(--lmn-ash-500)' }}>
-            G{d.matchday}
-          </span>
+      {sub && (
+        <div style={{ fontFamily: 'var(--lmn-font-ui)', fontSize: 11, color: 'var(--lmn-ash-500)', marginTop: 6 }}>
+          {sub}
         </div>
-      ))}
+      )}
     </div>
   )
 }
@@ -100,14 +69,21 @@ function AchievementGrid({ achievements }: { achievements: Achievement[] }) {
   )
 }
 
+// Colore chip "Risultato": verde esatto, oro segno, grigio sbagliato.
+function resultBadgeStyle(outcome: string): React.CSSProperties {
+  if (outcome === 'exact')
+    return { background: 'rgba(34,168,95,0.18)', color: 'var(--lmn-success-400)' }
+  if (outcome === 'sign')
+    return { background: 'rgba(212,168,67,0.18)', color: 'var(--lmn-gold-400)' }
+  return { background: 'var(--lmn-pitch-500, #182038)', color: 'var(--lmn-ash-500)' }
+}
+
 // ------------------------------------------------------------- History
 function History({
   stats,
-  scorers,
   isMe,
 }: {
   stats: UserStats
-  scorers: Map<number, ScorerPrediction>
   isMe: boolean
 }) {
   if (stats.history.length === 0)
@@ -119,8 +95,12 @@ function History({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {stats.history.map((h) => {
-        const sc = scorers.get(h.match_id)
         const hasResult = h.actual_home != null && h.actual_away != null
+        const pending = h.outcome === 'pending'
+        const resultPts = h.points ?? 0
+        const scorerPts = h.scorer_points ?? 0
+        const hasScorer = !!h.scorer_names && h.scorer_names.length > 0
+        const total = resultPts + scorerPts
         return (
         <Link
           key={h.match_id}
@@ -146,31 +126,121 @@ function History({
                 </>
               )}
             </div>
-            {sc && sc.players.length > 0 && (
+            {/* Nomi marcatori previsti */}
+            {hasScorer && (
               <div style={{ fontFamily: 'var(--lmn-font-ui)', fontSize: 11, marginTop: 3, color: 'var(--lmn-ash-500)' }}>
-                ⚽ {sc.players.map((pl) => pl.player_name).join(', ')}
-                {sc.outcome === 'hit' ? (
-                  <span style={{ color: 'var(--lmn-success-400)', fontWeight: 600 }}> · +{sc.points} PT</span>
-                ) : sc.outcome === 'miss' ? (
-                  <span style={{ color: 'var(--lmn-ash-600)', fontWeight: 600 }}> · 0 PT</span>
-                ) : (
-                  <span style={{ color: 'var(--lmn-ash-600)' }}> · in attesa</span>
+                ⚽ {h.scorer_names!.join(', ')}
+              </div>
+            )}
+            {/* Dettaglio punti: risultato + marcatori, etichettati */}
+            {!pending && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--lmn-font-ui)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    padding: '2px 8px',
+                    borderRadius: 6,
+                    ...resultBadgeStyle(h.outcome),
+                  }}
+                >
+                  Risultato {resultPts > 0 ? `+${resultPts}` : '0'}
+                </span>
+                {hasScorer && (
+                  <span
+                    style={{
+                      fontFamily: 'var(--lmn-font-ui)',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      padding: '2px 8px',
+                      borderRadius: 6,
+                      background: scorerPts > 0 ? 'rgba(34,168,95,0.18)' : 'var(--lmn-pitch-500, #182038)',
+                      color: scorerPts > 0 ? 'var(--lmn-success-400)' : 'var(--lmn-ash-500)',
+                    }}
+                  >
+                    ⚽ Marcatori {scorerPts > 0 ? `+${scorerPts}` : '0'}
+                  </span>
                 )}
               </div>
             )}
           </div>
-          {h.outcome === 'pending' ? (
+          {/* Totale punti del pronostico (risultato + marcatori) */}
+          {pending ? (
             <Badge variant="timed">In attesa</Badge>
-          ) : h.outcome === 'exact' ? (
-            <Badge variant="esatto">+{h.points} PT</Badge>
-          ) : h.outcome === 'sign' ? (
-            <Badge variant="parziale">+{h.points} PT</Badge>
           ) : (
-            <Badge variant="sbagliato">0 PT</Badge>
+            <div style={{ textAlign: 'right', minWidth: 46 }}>
+              <div
+                style={{
+                  fontFamily: 'var(--lmn-font-display)',
+                  fontSize: 22,
+                  lineHeight: 1,
+                  color: total > 0 ? 'var(--lmn-gold-400)' : 'var(--lmn-ash-500)',
+                }}
+              >
+                {total}
+              </div>
+              <div style={{ fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--lmn-ash-500)' }}>
+                punti
+              </div>
+            </div>
           )}
         </Link>
         )
       })}
+    </div>
+  )
+}
+
+// ------------------------------------------------------------- Special list
+function SpecialList({
+  items,
+  isMe,
+  style,
+}: {
+  items: SpecialStat[]
+  isMe: boolean
+  style?: React.CSSProperties
+}) {
+  if (!items || items.length === 0)
+    return (
+      <p style={{ color: 'var(--lmn-ash-500)', fontSize: 13, ...style }}>
+        {isMe
+          ? 'Nessun pronostico di torneo ancora.'
+          : 'I pronostici di torneo si vedono dopo la scadenza.'}
+      </p>
+    )
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, ...style }}>
+      {items.map((q) => (
+        <div key={q.code} className="lmn-card" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'var(--lmn-font-ui)', fontWeight: 600, fontSize: 13, color: 'var(--lmn-ash-100)' }}>
+              {q.title}
+            </div>
+            <div style={{ fontFamily: 'var(--lmn-font-ui)', fontSize: 12, marginTop: 3, color: 'var(--lmn-ash-300)' }}>
+              {q.answer_label ?? <span style={{ color: 'var(--lmn-ash-600)' }}>Nessuna risposta</span>}
+            </div>
+            {q.resolved && q.correct_label && (
+              <div style={{ fontSize: 11, marginTop: 2, color: 'var(--lmn-ash-500)' }}>
+                Corretta: <span style={{ color: 'var(--lmn-success-400)' }}>{q.correct_label}</span>
+              </div>
+            )}
+          </div>
+          {q.resolved ? (
+            <Badge variant={(q.my_points ?? 0) > 0 ? 'esatto' : 'sbagliato'}>
+              {q.my_points ?? 0} PT
+            </Badge>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+              <Badge variant="live" live>
+                In corso
+              </Badge>
+              <span style={{ fontSize: 10, color: 'var(--lmn-ash-500)' }}>vale {q.points} pt</span>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }
@@ -182,7 +252,6 @@ export default function Profile() {
   const isMe = !userId || userId === user?.id
 
   const [stats, setStats] = useState<UserStats | null>(null)
-  const [scorers, setScorers] = useState<Map<number, ScorerPrediction>>(new Map())
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [error, setError] = useState(false)
 
@@ -192,9 +261,6 @@ export default function Profile() {
     if (isMe) {
       getMyAchievements()
         .then((r) => setAchievements(r.achievements))
-        .catch(() => {})
-      getMyScorerPredictions()
-        .then((sps) => setScorers(new Map(sps.map((s) => [s.match_id, s]))))
         .catch(() => {})
     }
   }, [userId, isMe, user?.id])
@@ -267,16 +333,13 @@ export default function Profile() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 28 }}>
         <StatCard label="Punti totali" value={stats.total_points} icon="trophy" />
         <StatCard label="Risultati esatti" value={stats.exact_count} icon="goal" />
-        <StatCard label="Precisione" value={stats.accuracy} unit="%" icon="prediction-arrow" />
+        <StatCard
+          label="Marcatori indovinati"
+          value={stats.scorers_guessed}
+          icon="ball"
+          sub={`${stats.scorers_predicted} previsti · ${stats.scorers_accuracy}%`}
+        />
         <StatCard label="Partite mancate" value={stats.missed_count} icon="whistle" />
-      </div>
-
-      {/* Grafico punti per giornata */}
-      <h2 style={{ fontFamily: 'var(--lmn-font-display)', fontSize: 22, letterSpacing: '0.04em', margin: '0 0 12px', color: 'var(--lmn-ash-100)' }}>
-        PUNTI PER GIORNATA
-      </h2>
-      <div className="lmn-card" style={{ padding: 20, marginBottom: 28 }}>
-        <PointsChart data={stats.points_by_matchday} />
       </div>
 
       {/* Achievements (solo profilo proprio) */}
@@ -295,11 +358,17 @@ export default function Profile() {
         </>
       )}
 
-      {/* Storico */}
+      {/* Pronostici di torneo */}
       <h2 style={{ fontFamily: 'var(--lmn-font-display)', fontSize: 22, letterSpacing: '0.04em', margin: '0 0 12px', color: 'var(--lmn-ash-100)' }}>
-        ULTIMI PRONOSTICI
+        PRONOSTICI TORNEO
       </h2>
-      <History stats={stats} scorers={scorers} isMe={isMe} />
+      <SpecialList items={stats.special} isMe={isMe} style={{ marginBottom: 28 }} />
+
+      {/* Storico partite concluse */}
+      <h2 style={{ fontFamily: 'var(--lmn-font-display)', fontSize: 22, letterSpacing: '0.04em', margin: '0 0 12px', color: 'var(--lmn-ash-100)' }}>
+        {isMe ? 'ULTIMI PRONOSTICI' : 'PARTITE CONCLUSE'}
+      </h2>
+      <History stats={stats} isMe={isMe} />
 
     </div>
   )

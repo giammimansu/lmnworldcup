@@ -112,21 +112,18 @@ function Trend({ value }: { value: number }) {
 }
 
 // ------------------------------------------------------------- Recap giornata
-// Badge punti: verde = esatto (multiplo di 3), ambra = segno, grigio = 0.
-// Stessa euristica della classifica (compute_leaderboard).
-function pointsBadgeStyle(points: number): React.CSSProperties {
-  if (points <= 0)
-    return { background: 'var(--lmn-pitch-500, #182038)', color: 'var(--lmn-ash-500)' }
-  if (points % 3 === 0)
-    return { background: 'rgba(34,168,95,0.18)', color: 'var(--lmn-success-400)' }
-  return { background: 'rgba(212,168,67,0.18)', color: 'var(--lmn-gold-400)' }
-}
-
+// Lista delle partite concluse della giornata: tap -> dettaglio /match/:id
+// (dove si vedono i pronostici di tutta la lega).
 function RecapMatchCard({ match }: { match: Recap['matches'][number] }) {
+  const navigate = useNavigate()
   return (
-    <div className="lmn-card" style={{ padding: 16, marginBottom: 12 }}>
+    <div
+      className="lmn-card lmn-card--hoverable"
+      onClick={() => navigate(`/match/${match.id}`)}
+      style={{ padding: 16, marginBottom: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}
+    >
       {/* Risultato reale */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'flex-end', minWidth: 0 }}>
           <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--lmn-ash-100)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {match.home_team_name ?? '—'}
@@ -143,59 +140,7 @@ function RecapMatchCard({ match }: { match: Recap['matches'][number] }) {
           </span>
         </div>
       </div>
-
-      {/* Griglia pronostici membri */}
-      {match.predictions.length === 0 ? (
-        <div style={{ fontSize: 12, color: 'var(--lmn-ash-500)', textAlign: 'center' }}>
-          Nessun pronostico per questa partita.
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {match.predictions.map((p) => (
-            <div key={p.user_id} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ flex: 1, fontSize: 13, color: 'var(--lmn-ash-300)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {p.display_name}
-                </span>
-                <span style={{ fontFamily: 'var(--lmn-font-mono)', fontSize: 13, color: 'var(--lmn-ash-400)', minWidth: 40, textAlign: 'center' }}>
-                  {p.home_score}–{p.away_score}
-                </span>
-                <span
-                  style={{
-                    fontFamily: 'var(--lmn-font-ui)',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    padding: '2px 8px',
-                    borderRadius: 6,
-                    minWidth: 36,
-                    textAlign: 'center',
-                    ...pointsBadgeStyle(p.points),
-                  }}
-                >
-                  {p.points > 0 ? `+${p.points}` : '0'}
-                </span>
-              </div>
-              {p.scorer_names && p.scorer_names.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingLeft: 4 }}>
-                  <span style={{ fontSize: 11, color: 'var(--lmn-ash-500)' }}>
-                    ⚽ {p.scorer_names.join(', ')}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: 'var(--lmn-font-ui)',
-                      fontSize: 10,
-                      fontWeight: 600,
-                      color: (p.scorer_points ?? 0) > 0 ? 'var(--lmn-success-400)' : 'var(--lmn-ash-600)',
-                    }}
-                  >
-                    {(p.scorer_points ?? 0) > 0 ? `+${p.scorer_points}` : '0'}
-                  </span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      <span style={{ color: 'var(--lmn-ash-500)', fontSize: 18, flexShrink: 0 }}>›</span>
     </div>
   )
 }
@@ -392,6 +337,25 @@ export default function Home() {
               )}
             </div>
           )}
+          <div
+            onClick={(e) => {
+              e.stopPropagation()
+              navigate('/special?view=league')
+            }}
+            style={{
+              fontSize: 12,
+              marginTop: 8,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              color: 'var(--lmn-gold-400)',
+              fontFamily: 'var(--lmn-font-ui)',
+              fontWeight: 600,
+            }}
+          >
+            <Icon name="shield" size={13} />
+            Vedi i pronostici dei tuoi avversari ›
+          </div>
         </div>
         <span style={{ color: 'var(--lmn-ash-500)' }}>›</span>
       </div>

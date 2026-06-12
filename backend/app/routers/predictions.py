@@ -15,7 +15,7 @@ from app.models.prediction import (
     ScorerPredictionOut,
     SignDistribution,
 )
-from app.services.scoring import _sign
+from app.services.scoring import MAX_SCORERS_PER_TEAM, _sign
 
 router = APIRouter(prefix="/predictions", tags=["predictions"])
 
@@ -256,11 +256,15 @@ def upsert_scorer(
                 detail="Un marcatore non appartiene a questa partita",
             )
 
-    if home_n != ph or away_n != pa:
+    # Marcatori richiesti = gol previsti, ma al massimo MAX_SCORERS_PER_TEAM
+    # per squadra (un 5-5 chiede comunque solo 3 marcatori per lato).
+    exp_home = min(ph, MAX_SCORERS_PER_TEAM)
+    exp_away = min(pa, MAX_SCORERS_PER_TEAM)
+    if home_n != exp_home or away_n != exp_away:
         raise HTTPException(
             status_code=400,
             detail=(
-                f"Servono {ph} marcatori per {home_tla} e {pa} per {away_tla} "
+                f"Servono {exp_home} marcatori per {home_tla} e {exp_away} per {away_tla} "
                 f"(ricevuti {home_n}/{away_n})"
             ),
         )

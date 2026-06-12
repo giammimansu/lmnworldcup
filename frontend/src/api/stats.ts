@@ -14,6 +14,19 @@ export interface HistoryEntry {
   actual_away: number | null
   points: number | null
   outcome: Outcome
+  scorer_names: string[] | null
+  scorer_points: number | null
+}
+
+export interface SpecialStat {
+  code: string
+  title: string
+  qtype: 'team' | 'player' | 'podium'
+  points: number
+  resolved: boolean
+  correct_label: string | null
+  answer_label: string | null
+  my_points: number | null
 }
 
 export interface UserStats {
@@ -26,8 +39,12 @@ export interface UserStats {
   wrong_count: number
   missed_count: number
   accuracy: number
+  scorers_guessed: number
+  scorers_predicted: number
+  scorers_accuracy: number
   points_by_matchday: { matchday: number; points: number }[]
   history: HistoryEntry[]
+  special: SpecialStat[]
 }
 
 export interface Achievement {

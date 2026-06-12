@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   answerSpecial,
   getSpecialQuestions,
@@ -8,7 +9,12 @@ import {
   type Team,
 } from '../api/special'
 import { getAllPlayers, type Player } from '../api/players'
-import { Badge, Button } from '../components/ui'
+import {
+  getLeagueSpecial,
+  type LeagueSpecialQuestion,
+} from '../api/leagues'
+import { useLeagues } from '../leagues/LeagueContext'
+import { Avatar, Badge, Button } from '../components/ui'
 import { Icon } from '../components/Icon'
 import { SearchSelect, type Option } from '../components/SearchSelect'
 import BackButton from '../components/BackButton'
@@ -41,6 +47,184 @@ function playerLabel(players: Player[], id: number | undefined | null): string {
   if (!id) return '—'
   const p = players.find((x) => x.id === id)
   return p ? `${p.name}${p.team_tla ? ` (${p.team_tla})` : ''}` : `#${id}`
+}
+
+function formatAnswer(
+  qtype: 'team' | 'player' | 'podium',
+  answer: { team_tla?: string; player_id?: number; podium?: string[] } | null,
+  teams: Team[],
+  players: Player[],
+): string {
+  if (!answer) return '—'
+  if (qtype === 'team') return teamLabel(teams, answer.team_tla)
+  if (qtype === 'player') return playerLabel(players, answer.player_id)
+  if (qtype === 'podium')
+    return (answer.podium ?? []).map((t) => teamLabel(teams, t)).join(' · ')
+  return '—'
+}
+
+// --------------------------------------------------------------- Vista lega
+function LeagueQuestionCard({
+  q,
+  teams,
+  players,
+}: {
+  q: LeagueSpecialQuestion
+  teams: Team[]
+  players: Player[]
+}) {
+  return (
+    <div className="lmn-card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+        <div>
+          <div style={{ fontFamily: 'var(--lmn-font-ui)', fontWeight: 600, fontSize: 16, color: 'var(--lmn-ash-100)' }}>
+            {q.title}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--lmn-ash-500)', marginTop: 2 }}>
+            {q.qtype === 'podium' ? `${q.points} punti per posizione esatta` : `${q.points} punti`}
+          </div>
+        </div>
+        {q.resolved ? (
+          <Badge variant="esatto">Risolta</Badge>
+        ) : q.open ? (
+          <Badge variant="points">Aperta</Badge>
+        ) : (
+          <Badge variant="finished">Chiusa</Badge>
+        )}
+      </div>
+
+      {/* Risposta corretta se risolta */}
+      {q.resolved && q.correct_answer && (
+        <div style={{ fontSize: 13, color: 'var(--lmn-ash-400)' }}>
+          Risposta corretta:{' '}
+          <span style={{ color: 'var(--lmn-success-400)' }}>
+            {formatAnswer(q.qtype, q.correct_answer, teams, players)}
+          </span>
+        </div>
+      )}
+
+      {/* Domanda ancora aperta: risposte nascoste */}
+      {q.open ? (
+        <div style={{ fontSize: 13, color: 'var(--lmn-ash-500)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="clock" size={15} />
+          Risposte nascoste fino alla scadenza · {q.answered_count}/{q.member_count} hanno risposto
+        </div>
+      ) : q.answers.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--lmn-ash-500)' }}>Nessuna risposta in questa lega.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {q.answers.map((a) => (
+            <div key={a.user_id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Avatar name={a.display_name} size="sm" />
+              <span style={{ flex: 1, fontSize: 13, color: 'var(--lmn-ash-200)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {a.display_name}
+              </span>
+              <span style={{ fontSize: 13, color: 'var(--lmn-ash-300)', textAlign: 'right', maxWidth: '50%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {formatAnswer(q.qtype, a.answer, teams, players)}
+              </span>
+              {q.resolved && (
+                <span
+                  style={{
+                    fontFamily: 'var(--lmn-font-ui)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    padding: '2px 8px',
+                    borderRadius: 6,
+                    minWidth: 40,
+                    textAlign: 'center',
+                    background: (a.points ?? 0) > 0 ? 'rgba(34,168,95,0.18)' : 'var(--lmn-pitch-500, #182038)',
+                    color: (a.points ?? 0) > 0 ? 'var(--lmn-success-400)' : 'var(--lmn-ash-500)',
+                  }}
+                >
+                  {(a.points ?? 0) > 0 ? `+${a.points}` : '0'}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function LeagueSpecialView({ teams, players }: { teams: Team[]; players: Player[] }) {
+  const { leagues, current } = useLeagues()
+  const [viewLeagueId, setViewLeagueId] = useState<string | null>(null)
+  const viewLeague = leagues.find((l) => l.id === viewLeagueId) ?? current
+  const [questions, setQuestions] = useState<LeagueSpecialQuestion[]>([])
+  const [state, setState] = useState<'loading' | 'ok' | 'error'>('loading')
+
+  useEffect(() => {
+    if (current && viewLeagueId === null) setViewLeagueId(current.id)
+  }, [current, viewLeagueId])
+
+  useEffect(() => {
+    if (!viewLeague) return
+    setState('loading')
+    let alive = true
+    getLeagueSpecial(viewLeague.id)
+      .then((r) => alive && (setQuestions(r.questions), setState('ok')))
+      .catch(() => alive && setState('error'))
+    return () => {
+      alive = false
+    }
+  }, [viewLeague?.id])
+
+  if (!viewLeague)
+    return (
+      <div className="lmn-card" style={{ padding: 24, textAlign: 'center', color: 'var(--lmn-ash-400)' }}>
+        Non sei in nessuna lega.
+      </div>
+    )
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Selettore lega */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+        {leagues.length > 1 ? (
+          <select
+            value={viewLeague.id}
+            onChange={(e) => setViewLeagueId(e.target.value)}
+            style={{
+              background: 'var(--lmn-pitch-500, #182038)',
+              color: 'var(--lmn-ash-100)',
+              border: '1px solid var(--lmn-ash-800, #283044)',
+              borderRadius: 8,
+              padding: '6px 10px',
+              fontFamily: 'var(--lmn-font-ui)',
+              fontSize: 13,
+              maxWidth: 180,
+            }}
+          >
+            {leagues.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span style={{ fontFamily: 'var(--lmn-font-ui)', fontSize: 12, color: 'var(--lmn-gold-400)' }}>
+            {viewLeague.name}
+          </span>
+        )}
+      </div>
+
+      {state === 'loading' && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+          <span className="lmn-spinner" />
+        </div>
+      )}
+      {state === 'error' && (
+        <div className="lmn-card" style={{ padding: 24, textAlign: 'center' }}>
+          <p style={{ color: 'var(--lmn-danger-400)', margin: 0 }}>Errore nel caricamento.</p>
+        </div>
+      )}
+      {state === 'ok' &&
+        questions.map((q) => (
+          <LeagueQuestionCard key={q.code} q={q} teams={teams} players={players} />
+        ))}
+    </div>
+  )
 }
 
 // --------------------------------------------------------------- QuestionCard
@@ -221,6 +405,10 @@ export default function Special() {
   const [teams, setTeams] = useState<Team[]>([])
   const [players, setPlayers] = useState<Player[]>([])
   const [state, setState] = useState<'loading' | 'ok' | 'error'>('loading')
+  const [searchParams] = useSearchParams()
+  const [view, setView] = useState<'mine' | 'league'>(
+    searchParams.get('view') === 'league' ? 'league' : 'mine',
+  )
 
   const load = () =>
     Promise.all([getSpecialQuestions(), getTeams(), getAllPlayers()])
@@ -266,7 +454,33 @@ export default function Special() {
         punti: scegli bene.
       </p>
 
-      {countdown && (
+      {/* Toggle vista: i miei pronostici vs quelli della lega */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+        {(['mine', 'league'] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            style={{
+              flex: 1,
+              padding: '10px 12px',
+              borderRadius: 8,
+              border: view === v ? '1px solid var(--lmn-gold-600)' : '1px solid var(--lmn-ash-800, #283044)',
+              background: view === v ? 'rgba(212,168,67,0.10)' : 'var(--lmn-pitch-500, #182038)',
+              color: view === v ? 'var(--lmn-gold-400)' : 'var(--lmn-ash-300)',
+              fontFamily: 'var(--lmn-font-ui)',
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+            }}
+          >
+            {v === 'mine' ? 'I miei pronostici' : 'La lega'}
+          </button>
+        ))}
+      </div>
+
+      {view === 'league' && <LeagueSpecialView teams={teams} players={players} />}
+
+      {view === 'mine' && countdown && (
         <div
           className="lmn-card"
           style={{
@@ -296,19 +510,19 @@ export default function Special() {
         </div>
       )}
 
-      {state === 'loading' && (
+      {view === 'mine' && state === 'loading' && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
           <span className="lmn-spinner" />
         </div>
       )}
 
-      {state === 'error' && (
+      {view === 'mine' && state === 'error' && (
         <div className="lmn-card" style={{ padding: 24, textAlign: 'center' }}>
           <p style={{ color: 'var(--lmn-danger-400)', margin: 0 }}>Errore nel caricamento.</p>
         </div>
       )}
 
-      {state === 'ok' && questions.length === 0 && (
+      {view === 'mine' && state === 'ok' && questions.length === 0 && (
         <div className="lmn-card" style={{ padding: 32, textAlign: 'center' }}>
           <span style={{ color: 'var(--lmn-ash-500)' }}>
             <Icon name="star" size={32} />
@@ -319,7 +533,7 @@ export default function Special() {
         </div>
       )}
 
-      {state === 'ok' && (
+      {view === 'mine' && state === 'ok' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {questions.map((q) => (
             <QuestionCard key={q.code} q={q} teams={teams} players={players} onSaved={load} />

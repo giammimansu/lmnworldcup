@@ -28,6 +28,7 @@ STAGE_MULTIPLIERS = {
 EXACT_POINTS = 3
 SIGN_POINTS = 1
 PTS_SCORER = 2  # bonus marcatore (NON moltiplicato per fase)
+MAX_SCORERS_PER_TEAM = 3  # marcatori pronosticabili per squadra (anche se i gol > 3)
 
 
 def _sign(home: int, away: int) -> str:

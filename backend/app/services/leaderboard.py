@@ -4,6 +4,30 @@ from datetime import date, datetime, timezone
 from app.database import supabase_admin
 
 
+def _fetch_all(table: str, columns: str) -> list[dict]:
+    """Legge TUTTE le righe di una tabella paginando.
+
+    PostgREST tronca le risposte a 1000 righe e ignora .limit: senza paginazione
+    la classifica perdeva i pronostici oltre la millesima riga, sottostimando i
+    punti degli utenti finiti nella coda tagliata (predictions/scorer > 1000)."""
+    PAGE = 1000
+    out: list[dict] = []
+    start = 0
+    while True:
+        batch = (
+            supabase_admin.table(table)
+            .select(columns)
+            .range(start, start + PAGE - 1)
+            .execute()
+            .data
+        )
+        out.extend(batch)
+        if len(batch) < PAGE:
+            break
+        start += PAGE
+    return out
+
+
 def compute_leaderboard() -> list[dict]:
     """Classifica completa ordinata per punti totali.
 
@@ -14,12 +38,7 @@ def compute_leaderboard() -> list[dict]:
     profiles = (
         supabase_admin.table("profiles").select("id, display_name").execute().data
     )
-    predictions = (
-        supabase_admin.table("predictions")
-        .select("user_id, match_id, points")
-        .execute()
-        .data
-    )
+    predictions = _fetch_all("predictions", "user_id, match_id, points")
     finished_ids = {
         m["id"]
         for m in supabase_admin.table("matches")
@@ -53,12 +72,7 @@ def compute_leaderboard() -> list[dict]:
                 s["exact_count"] += 1
 
     # Bonus marcatore: confluisce negli stessi totali (allineato con recap).
-    scorer_preds = (
-        supabase_admin.table("scorer_predictions")
-        .select("user_id, match_id, points")
-        .execute()
-        .data
-    )
+    scorer_preds = _fetch_all("scorer_predictions", "user_id, match_id, points")
     for sp in scorer_preds:
         s = stats.get(sp["user_id"])
         if s is None:
@@ -68,12 +82,7 @@ def compute_leaderboard() -> list[dict]:
 
     # Pronostici di torneo (Sprint 9): i punti delle domande risolte confluiscono
     # negli stessi totali. points è NULL finché la domanda non è risolta.
-    special_preds = (
-        supabase_admin.table("special_predictions")
-        .select("user_id, points")
-        .execute()
-        .data
-    )
+    special_preds = _fetch_all("special_predictions", "user_id, points")
     for sp in special_preds:
         s = stats.get(sp["user_id"])
         if s is None:

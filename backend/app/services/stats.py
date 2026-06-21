@@ -220,10 +220,12 @@ def compute_user_stats(user_id: str, public: bool = False) -> dict:
 
     # Storico per data partita, più recenti prima. Sul profilo pubblico solo le
     # partite concluse (mai rivelare pronostici su partite non iniziate).
+    # Niente cap: con un cap (es. 50) le partite future pending occupavano i primi
+    # slot e spingevano fuori quelle finite con punti, così la somma riga-per-riga
+    # dello storico non coincideva più con i punti totali. Le partite sono ~104.
     history.sort(key=lambda h: h["utc_date"], reverse=True)
     if public:
         history = [h for h in history if h["outcome"] != "pending"]
-    history = history[:50]
 
     matchdays = sorted(points_by_matchday)
     return {

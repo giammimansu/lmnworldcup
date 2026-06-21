@@ -596,11 +596,14 @@ export default function Predict() {
   useEffect(() => {
     const resize = (prev: (number | '')[], n: number) =>
       prev.length === n ? prev : Array.from({ length: n }, (_, i) => prev[i] ?? '')
-    const hn = Math.min(home === '' ? 0 : Number(home), MAX_SCORERS)
-    const an = Math.min(away === '' ? 0 : Number(away), MAX_SCORERS)
+    // Nessuno slot finché la squadra non è definita: i match knockout ancora "Da
+    // definire" (TLA nullo) non hanno una rosa da cui scegliere i marcatori, e
+    // mostrare slot vuoti bloccherebbe anche il salvataggio del solo risultato.
+    const hn = match?.home_team_tla ? Math.min(home === '' ? 0 : Number(home), MAX_SCORERS) : 0
+    const an = match?.away_team_tla ? Math.min(away === '' ? 0 : Number(away), MAX_SCORERS) : 0
     setScorerHome((prev) => resize(prev, hn))
     setScorerAway((prev) => resize(prev, an))
-  }, [home, away])
+  }, [home, away, match?.home_team_tla, match?.away_team_tla])
 
   // Pre-popola i marcatori salvati, suddivisi per squadra
   useEffect(() => {

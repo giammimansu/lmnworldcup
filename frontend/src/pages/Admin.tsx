@@ -177,8 +177,9 @@ function GoalsRow({ match, onMsg }: { match: Match; onMsg: (m: string) => void }
   const refreshGoals = () => listGoals(match.id).then(setGoals).catch(() => setGoals([]))
 
   useEffect(() => {
-    const tlas = [match.home_team_tla, match.away_team_tla].filter(Boolean) as string[]
-    Promise.all(tlas.map((t) => getPlayers(t)))
+    // Per team_id (stabile): il TLA di football-data può cambiare tra i sync.
+    const ids = [match.home_team_id, match.away_team_id].filter((x) => x != null) as number[]
+    Promise.all(ids.map((id) => getPlayers(id)))
       .then((lists) => setPlayers(lists.flat()))
       .catch(() => setPlayers([]))
     refreshGoals()

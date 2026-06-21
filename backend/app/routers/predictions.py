@@ -183,7 +183,7 @@ def _players_by_id(player_ids: list[int]) -> dict:
         return {}
     rows = (
         supabase_admin.table("players")
-        .select("id, name, team_tla")
+        .select("id, name, team_id, team_tla")
         .in_("id", list(set(player_ids)))
         .execute()
         .data
@@ -197,6 +197,7 @@ def _scorer_players(player_ids: list[int], by_id: dict) -> list[ScorerPlayer]:
         ScorerPlayer(
             player_id=pid,
             player_name=by_id.get(pid, {}).get("name", "?"),
+            team_id=by_id.get(pid, {}).get("team_id"),
             team_tla=by_id.get(pid, {}).get("team_tla"),
         )
         for pid in player_ids
@@ -238,7 +239,9 @@ def upsert_scorer(
         )
     ph, pa = pred[0]["home_score"], pred[0]["away_score"]
 
-    home_tla, away_tla = match["home_team_tla"], match["away_team_tla"]
+    # Confronto per team_id (stabile) e non per team_tla: il TLA di football-data
+    # può cambiare tra i sync (es. Uruguay URY->URU) e disallinearsi dai players.
+    home_id, away_id = match["home_team_id"], match["away_team_id"]
     by_id = _players_by_id(body.player_ids)
 
     home_n = away_n = 0
@@ -246,9 +249,9 @@ def upsert_scorer(
         p = by_id.get(pid)
         if not p:
             raise HTTPException(status_code=400, detail=f"Giocatore {pid} non trovato")
-        if p["team_tla"] == home_tla:
+        if p["team_id"] == home_id:
             home_n += 1
-        elif p["team_tla"] == away_tla:
+        elif p["team_id"] == away_id:
             away_n += 1
         else:
             raise HTTPException(
@@ -261,10 +264,12 @@ def upsert_scorer(
     exp_home = min(ph, MAX_SCORERS_PER_TEAM)
     exp_away = min(pa, MAX_SCORERS_PER_TEAM)
     if home_n != exp_home or away_n != exp_away:
+        home_label = match["home_team_tla"] or match["home_team_name"] or "casa"
+        away_label = match["away_team_tla"] or match["away_team_name"] or "trasferta"
         raise HTTPException(
             status_code=400,
             detail=(
-                f"Servono {exp_home} marcatori per {home_tla} e {exp_away} per {away_tla} "
+                f"Servono {exp_home} marcatori per {home_label} e {exp_away} per {away_label} "
                 f"(ricevuti {home_n}/{away_n})"
             ),
         )

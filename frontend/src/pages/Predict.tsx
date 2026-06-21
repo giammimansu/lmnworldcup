@@ -581,15 +581,17 @@ export default function Predict() {
       .catch(() => {})
   }, [id])
 
-  // Carica le rose delle due squadre per il dropdown marcatore
+  // Carica le rose delle due squadre per il dropdown marcatore.
+  // Per team_id (stabile): il TLA di football-data può cambiare tra i sync e
+  // disallinearsi dalla rosa, lasciando la tendina vuota.
   useEffect(() => {
-    if (match?.home_team_tla) {
-      getPlayers(match.home_team_tla).then(setHomePlayers).catch(() => setHomePlayers([]))
+    if (match?.home_team_id != null) {
+      getPlayers(match.home_team_id).then(setHomePlayers).catch(() => setHomePlayers([]))
     }
-    if (match?.away_team_tla) {
-      getPlayers(match.away_team_tla).then(setAwayPlayers).catch(() => setAwayPlayers([]))
+    if (match?.away_team_id != null) {
+      getPlayers(match.away_team_id).then(setAwayPlayers).catch(() => setAwayPlayers([]))
     }
-  }, [match?.home_team_tla, match?.away_team_tla])
+  }, [match?.home_team_id, match?.away_team_id])
 
   // Slot marcatore = gol previsti per squadra, ma al massimo MAX_SCORERS (un 5-5
   // chiede comunque solo 3 marcatori per lato). Preserva le scelte.
@@ -597,19 +599,19 @@ export default function Predict() {
     const resize = (prev: (number | '')[], n: number) =>
       prev.length === n ? prev : Array.from({ length: n }, (_, i) => prev[i] ?? '')
     // Nessuno slot finché la squadra non è definita: i match knockout ancora "Da
-    // definire" (TLA nullo) non hanno una rosa da cui scegliere i marcatori, e
+    // definire" (team_id nullo) non hanno una rosa da cui scegliere i marcatori, e
     // mostrare slot vuoti bloccherebbe anche il salvataggio del solo risultato.
-    const hn = match?.home_team_tla ? Math.min(home === '' ? 0 : Number(home), MAX_SCORERS) : 0
-    const an = match?.away_team_tla ? Math.min(away === '' ? 0 : Number(away), MAX_SCORERS) : 0
+    const hn = match?.home_team_id != null ? Math.min(home === '' ? 0 : Number(home), MAX_SCORERS) : 0
+    const an = match?.away_team_id != null ? Math.min(away === '' ? 0 : Number(away), MAX_SCORERS) : 0
     setScorerHome((prev) => resize(prev, hn))
     setScorerAway((prev) => resize(prev, an))
-  }, [home, away, match?.home_team_tla, match?.away_team_tla])
+  }, [home, away, match?.home_team_id, match?.away_team_id])
 
-  // Pre-popola i marcatori salvati, suddivisi per squadra
+  // Pre-popola i marcatori salvati, suddivisi per squadra (per team_id stabile)
   useEffect(() => {
     if (!myScorer || !match) return
-    const h = myScorer.players.filter((p) => p.team_tla === match.home_team_tla).map((p) => p.player_id).slice(0, MAX_SCORERS)
-    const a = myScorer.players.filter((p) => p.team_tla === match.away_team_tla).map((p) => p.player_id).slice(0, MAX_SCORERS)
+    const h = myScorer.players.filter((p) => p.team_id === match.home_team_id).map((p) => p.player_id).slice(0, MAX_SCORERS)
+    const a = myScorer.players.filter((p) => p.team_id === match.away_team_id).map((p) => p.player_id).slice(0, MAX_SCORERS)
     if (h.length) setScorerHome(h)
     if (a.length) setScorerAway(a)
   }, [myScorer, match])

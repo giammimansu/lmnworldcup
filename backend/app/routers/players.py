@@ -38,19 +38,27 @@ def list_teams(_user: dict = Depends(get_current_user)):
 @router.get("")
 def list_players(
     _user: dict = Depends(get_current_user),
+    team_id: int | None = Query(default=None),
     team_tla: str | None = Query(default=None),
 ):
-    """Lista giocatori, opzionalmente filtrata per nazionale (team_tla).
+    """Lista giocatori, opzionalmente filtrata per nazionale.
+
+    Filtrare per `team_id` (preferito) e non per `team_tla`: il TLA di
+    football-data può cambiare tra un sync e l'altro (es. Uruguay URY->URU)
+    mentre il team_id numerico resta stabile, quindi il match per TLA lasciava
+    la rosa vuota dopo un drift. team_tla resta supportato per compatibilità.
 
     Pagina con range(): senza filtro i giocatori sono >1000 e PostgREST tronca
     le risposte a 1000 righe (ignora .limit), tagliando fuori alcune nazionali."""
-    cols = "id, name, position, shirt_number, team_tla, team_name"
+    cols = "id, name, position, shirt_number, team_id, team_tla, team_name"
     PAGE = 1000
     out: list[dict] = []
     start = 0
     while True:
         q = supabase_admin.table("players").select(cols)
-        if team_tla:
+        if team_id is not None:
+            q = q.eq("team_id", team_id)
+        elif team_tla:
             q = q.eq("team_tla", team_tla)
         # order su id (unico): shirt_number non è unico -> paginazione instabile.
         batch = q.order("id").range(start, start + PAGE - 1).execute().data

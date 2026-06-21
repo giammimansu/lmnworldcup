@@ -49,6 +49,7 @@ export type ScorerOutcome = 'hit' | 'miss' | 'pending'
 export interface ScorerPlayer {
   player_id: number
   player_name: string
+  team_id: number | null
   team_tla: string | null
 }
 

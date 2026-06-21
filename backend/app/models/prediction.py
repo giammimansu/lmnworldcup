@@ -34,6 +34,7 @@ class ScorerPredictionCreate(BaseModel):
 class ScorerPlayer(BaseModel):
     player_id: int
     player_name: str
+    team_id: int | None = None
     team_tla: str | None = None
 
 
